@@ -57,7 +57,7 @@ def fetch_stock_data(stock_list):
         return {}
 
 # Compute stock scores (using efficient calculations for RSI and volume)
-@st.experimental_memo(ttl=refresh_interval * 60)
+@st.cache_data(ttl=refresh_interval * 60)
 def compute_stock_scores(stock_data):
     scores = []
     for stock, data in stock_data.items():
@@ -93,7 +93,7 @@ def compute_stock_scores(stock_data):
     return scores[:3]
 
 # Generate AI commentary with improved error handling and caching
-@st.experimental_memo(ttl=refresh_interval * 60)
+@st.cache_data(ttl=refresh_interval * 60)
 def generate_ai_commentary(stock, momentum, rsi, volume, overall):
     prompt = (f"Analyze the stock {stock} based on the following indicators:\n"
               f"- Momentum: {momentum}%\n"
