@@ -16,7 +16,6 @@ st.set_page_config(layout="wide")
 
 # OpenAI API Key (Replace with your own key)
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
-openai.api_key = OPENAI_API_KEY
 
 # Expander to show example recommendation
 with st.expander("📌 Example Stock Recommendation", expanded=False):
@@ -53,9 +52,10 @@ def fetch_stock_data(stock_list):
     for stock in stock_list:
         try:
             data = yf.Ticker(stock).history(period='3mo')
-            stock_data[stock] = data
+            stock_data[stock] = data if not data.empty else None
         except Exception as e:
             print(f"Error fetching {stock}: {e}")
+            stock_data[stock] = None
     return stock_data
 
 # Fetch stock data
@@ -65,7 +65,7 @@ stock_data = fetch_stock_data(ALL_STOCKS)
 def compute_stock_scores(stock_data):
     scores = []
     for stock, data in stock_data.items():
-        if len(data) < 20:
+        if data is None or len(data) < 20:
             continue
 
         # Ensure 'Volume' column exists and fill NaNs
@@ -108,7 +108,7 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
     try:
         client = openai.OpenAI(api_key=OPENAI_API_KEY)
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4-turbo",
             messages=[
                 {"role": "system", "content": "You are a financial analyst providing stock investment insights."},
                 {"role": "user", "content": prompt}
