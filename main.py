@@ -106,6 +106,14 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
 "
               f"- Volume: {volume}
 "
+              f"Provide a concise investment recommendation without extensive explanations."){stock} based on the following indicators:
+"
+              f"- Momentum: {momentum}%
+"
+              f"- RSI: {rsi}
+"
+              f"- Volume: {volume}
+"
               f"Provide a concise investment recommendation without extensive explanations.")
 
     try:
