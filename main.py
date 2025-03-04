@@ -6,10 +6,13 @@ import plotly.express as px
 from textblob import TextBlob
 import datetime
 
+# Expand Streamlit to full width
+st.set_page_config(layout="wide")
+
 # Define stock pools with more tickers
-FRANCE_STOCKS = ['ML.PA', 'ALSTOM.PA', 'DG.PA', 'PUB.PA', 'RNO.PA', 'ACA.PA', 'BN.PA']  # Expanded mid-cap list
-ASIA_STOCKS = ['9984.T', '700.HK', '005930.KQ', 'RELIANCE.NS', 'BABA', 'TCEHY', 'JD', 'NTES']  # Expanded Asia stocks
-US_STOCKS = ['NVDA', 'TSLA', 'PLTR', 'SOFI', 'COIN', 'AMD', 'RBLX', 'UPST']  # Growth & small-cap stocks
+FRANCE_STOCKS = ['ML.PA', 'ALSTOM.PA', 'DG.PA', 'PUB.PA', 'RNO.PA', 'ACA.PA', 'BN.PA', 'AI.PA', 'STM.PA', 'CAP.PA']  # Expanded mid-cap list
+ASIA_STOCKS = ['9984.T', '700.HK', '005930.KQ', 'RELIANCE.NS', 'BABA', 'TCEHY', 'JD', 'NTES', 'SE', 'SONY']  # Expanded Asia stocks
+US_STOCKS = ['NVDA', 'TSLA', 'PLTR', 'SOFI', 'COIN', 'AMD', 'RBLX', 'UPST', 'CRWD', 'FSLY', 'NET']  # Growth & small-cap stocks
 ALL_STOCKS = FRANCE_STOCKS + ASIA_STOCKS + US_STOCKS
 
 # Define sentiment analysis function
@@ -28,16 +31,19 @@ def fetch_stock_data(stock_list):
             print(f"Error fetching {stock}: {e}")
     return stock_data
 
-# Fetch market news sentiment
+# Fetch market news sentiment and track API usage
 def fetch_market_news(stock):
     url = f'https://newsapi.org/v2/everything?q={stock}&apiKey=YOUR_NEWSAPI_KEY'
     response = requests.get(url).json()
+
+    api_usage = response.get('totalResults', 0)  # Track API usage
+
     if 'articles' in response:
         headlines = [article['title'] for article in response['articles'][:5]]
         sentiment_scores = [get_sentiment(headline) for headline in headlines]
         avg_sentiment = sum(sentiment_scores) / len(sentiment_scores) if sentiment_scores else 0
-        return avg_sentiment
-    return 0
+        return avg_sentiment, api_usage
+    return 0, api_usage
 
 # Screen stocks based on criteria
 def screen_stocks(stock_data):
@@ -45,6 +51,7 @@ def screen_stocks(stock_data):
     momentum_top3 = []
     volume_top3 = []
     sentiment_top3 = []
+    total_api_usage = 0
 
     for stock, data in stock_data.items():
         if len(data) < 10:
@@ -55,7 +62,8 @@ def screen_stocks(stock_data):
         price_change = (last_close - prev_close) / prev_close * 100
 
         volume_spike = data['Volume'].iloc[-1] > data['Volume'].mean() * 1.5
-        sentiment = fetch_market_news(stock)
+        sentiment, api_usage = fetch_market_news(stock)
+        total_api_usage += api_usage
 
         if price_change > 5 and volume_spike and sentiment > 0.1:
             selected_stocks.append((stock, price_change, sentiment))
@@ -68,7 +76,7 @@ def screen_stocks(stock_data):
     volume_top3.sort(key=lambda x: x[1], reverse=True)
     sentiment_top3.sort(key=lambda x: x[1], reverse=True)
 
-    return selected_stocks, momentum_top3[:3], volume_top3[:3], sentiment_top3[:3]
+    return selected_stocks, momentum_top3[:3], volume_top3[:3], sentiment_top3[:3], total_api_usage
 
 # Streamlit UI
 st.title("AI Stock Picker")
@@ -76,7 +84,11 @@ st.write("Stock picks based on momentum, volume, and sentiment analysis.")
 
 # Execute screening
 stock_data = fetch_stock_data(ALL_STOCKS)
-selected_stocks, top_momentum, top_volume, top_sentiment = screen_stocks(stock_data)
+selected_stocks, top_momentum, top_volume, top_sentiment, api_usage = screen_stocks(stock_data)
+
+# Display API usage information
+st.sidebar.subheader("📊 API Usage")
+st.sidebar.write(f"NewsAPI Calls Used: {api_usage}")
 
 # Display recommendations
 if selected_stocks:
