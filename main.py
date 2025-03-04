@@ -53,21 +53,31 @@ def fetch_stock_data(stock_list):
 # Fetch stock data
 stock_data = fetch_stock_data(ALL_STOCKS)
 
-# Display top 3 stocks for each strategy
-st.subheader("📊 Top Stock Picks")
-col1, col2 = st.columns(2)
+# Compute stock scores
+def compute_stock_scores(stock_data):
+    scores = []
+    for stock, data in stock_data.items():
+        if len(data) < 20:
+            continue
 
-with col1:
-    st.write("### Top 3 Momentum Stocks")
-    df_momentum = pd.DataFrame([(s, stock_data[s]['Close'].pct_change().iloc[-1]) for s in stock_data if len(stock_data[s]) > 1], columns=["Stock", "Momentum %"])
-    df_momentum = df_momentum.sort_values(by="Momentum %", ascending=False).head(3)
-    st.dataframe(df_momentum)
+        momentum_score = min(max((data['Close'].pct_change().iloc[-1] * 200), 0), 10)
+        rsi = data['Close'].rolling(window=14).mean().iloc[-1]
+        rsi_score = 10 if rsi < 30 else 4 if rsi < 50 else 0
+        volume_score = 10 if data['Volume'].iloc[-1] > data['Volume'].rolling(window=20).mean() * 1.5 else 4 if data['Volume'].iloc[-1] > data['Volume'].rolling(window=20).mean() else 0
 
-with col2:
-    st.write("### Top 3 RSI Oversold Stocks")
-    df_rsi = pd.DataFrame([(s, stock_data[s]['Close'].rolling(window=14).mean().iloc[-1]) for s in stock_data if len(stock_data[s]) > 1], columns=["Stock", "RSI"])
-    df_rsi = df_rsi.sort_values(by="RSI").head(3)
-    st.dataframe(df_rsi)
+        overall_score = (momentum_score + rsi_score + volume_score) / 3
+        scores.append((stock, momentum_score, rsi_score, volume_score, overall_score))
+
+    scores = sorted(scores, key=lambda x: x[4], reverse=True)
+    return scores[:5]
+
+# Fetch top 5 stocks
+top_stocks = compute_stock_scores(stock_data)
+
+# Display top 5 stocks with scores
+st.subheader("🏆 Top 5 Stock Picks Overall")
+df_top_stocks = pd.DataFrame(top_stocks, columns=["Stock", "Momentum Score", "RSI Score", "Volume Score", "Overall Score"])
+st.dataframe(df_top_stocks)
 
 # Add refresh button
 def refresh_data():
