@@ -53,15 +53,9 @@ def fetch_stock_data(stock_list):
         try:
             data = yf.Ticker(stock).history(period='3mo')
             stock_data[stock] = data if not data.empty else None
-                except openai.APIError as e:
-                    return f"AI analysis unavailable: {str(e)}"
-            except openai.AuthenticationError:
-                    return "AI analysis unavailable: Invalid OpenAI API key."
-            except openai.RateLimitError:
-                    return "AI analysis unavailable: Rate limit exceeded. Try again later."
-            except Exception as e:
-                        print(f"Error fetching {stock}: {e}")
-                        stock_data[stock] = None
+        except Exception as e:
+            print(f"Error fetching {stock}: {e}")
+            stock_data[stock] = None
     return stock_data
 
 # Fetch stock data
@@ -123,8 +117,14 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
             ]
         )
         return response.choices[0].message.content
-    except Exception as e:
+    except openai.APIError as e:
         return f"AI analysis unavailable: {str(e)}"
+    except openai.AuthenticationError:
+        return "AI analysis unavailable: Invalid OpenAI API key."
+    except openai.RateLimitError:
+        return "AI analysis unavailable: Rate limit exceeded. Try again later."
+    except Exception as e:
+        return f"AI analysis unavailable due to an unexpected error: {str(e)}"
 
 # Display top 5 stocks with AI commentary
 st.subheader("🏆 Top 5 Stock Picks Overall")
