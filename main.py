@@ -44,7 +44,7 @@ NEWSAPI_LIMIT = 1000  # Adjust based on your NewsAPI plan
 NEWSAPI_KEY = "c45a33e5851c470ea9d6bdbab7dab14c"
 
 # Enable auto-refresh
-refresh_interval = st.sidebar.slider("Auto-refresh interval (minutes)", 1, 30, 5)
+refresh_interval = st.sidebar.slider("Auto-refresh interval (minutes)", 1, 30, 30)
 
 @st.cache_data(ttl=refresh_interval * 60)
 def fetch_stock_data(stock_list):
@@ -91,19 +91,22 @@ def compute_stock_scores(stock_data):
         scores.append((stock, momentum_score, rsi_score, volume_score, overall_score))
 
     scores = sorted(scores, key=lambda x: x[4], reverse=True)
-    return scores[:5]
+    return scores[:3]
 
 # Fetch top 5 stocks
 top_stocks = compute_stock_scores(stock_data)
 
 # Generate AI-based commentary
 def generate_ai_commentary(stock, momentum, rsi, volume, overall):
-    prompt = (f"Analyze the stock {stock} based on the following indicators: \n"
-              f"- Momentum Score: {momentum}/10 \n"
-              f"- RSI Score: {rsi}/10 \n"
-              f"- Volume Score: {volume}/10 \n"
-              f"- Overall Score: {overall}/10 \n"
-              f"Provide a short investment recommendation, stating whether it's a good buy, hold, or avoid.")
+    prompt = (f"Analyze the stock {stock} based on the following indicators:
+"
+              f"- Momentum: {momentum}%
+"
+              f"- RSI: {rsi}
+"
+              f"- Volume: {volume}
+"
+              f"Provide a concise investment recommendation without extensive explanations.")
 
     try:
         if not OPENAI_API_KEY:
@@ -127,14 +130,23 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
         return f"AI analysis unavailable due to an unexpected error: {str(e)}"
 
 # Display top 5 stocks with AI commentary
-st.subheader("🏆 Top 5 Stock Picks Overall")
+st.subheader("🏆 Top 3 Stock Picks Overall")
 df_top_stocks = pd.DataFrame(top_stocks, columns=["Stock", "Momentum Score", "RSI Score", "Volume Score", "Overall Score"])
+df_top_stocks = df_top_stocks.round(2)
 st.dataframe(df_top_stocks)
 
 st.subheader("💡 AI-Powered Investment Insights")
 for stock, momentum, rsi, volume, overall in top_stocks:
     ai_comment = generate_ai_commentary(stock, momentum, rsi, volume, overall)
-    st.write(f"**{stock} Analysis:** {ai_comment}")
+    st.write(f"📊 **{stock} Analysis:**")
+    stock_df = pd.DataFrame({
+        "Indicator": ["Momentum %", "RSI", "Volume"],
+        "Value": [momentum, rsi, volume]
+    })
+    st.table(stock_df)
+    st.write(f"💬 **AI Insight:** {ai_comment}")
+    fig = px.line(data, x=data.index, y=["Close", "Volume"], title=f"{stock} Price & Volume (Last 10 Weeks)")
+    st.plotly_chart(fig)
 
 # Add refresh button
 def refresh_data():
