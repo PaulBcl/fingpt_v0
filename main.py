@@ -110,7 +110,7 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
             return "AI analysis unavailable: OpenAI API key is missing."
         client = openai.OpenAI(api_key=OPENAI_API_KEY)
         response = client.chat.completions.create(
-            model="gpt-4-0613",
+            model="gpt-4-turbo",
             messages=[
                 {"role": "system", "content": "You are a financial analyst providing stock investment insights."},
                 {"role": "user", "content": prompt}
