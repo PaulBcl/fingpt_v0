@@ -122,6 +122,14 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
 "
               f"- Volume: {volume}
 "
+              f"Provide a concise investment recommendation without extensive explanations."){stock} based on the following indicators:
+"
+              f"- Momentum: {momentum}%
+"
+              f"- RSI: {rsi}
+"
+              f"- Volume: {volume}
+"
               f"Provide a concise investment recommendation without extensive explanations.")
 
     try:
@@ -167,6 +175,8 @@ for stock, momentum, rsi, volume, overall in top_stocks:
 # Add refresh button
 def refresh_data():
     if 'refresh_triggered' not in st.session_state or not st.session_state.refresh_triggered:
+        st.session_state.refresh_triggered = True
+        st.experimental_rerun()
     st.session_state.refresh_triggered = True
     st.experimental_rerun()
 
