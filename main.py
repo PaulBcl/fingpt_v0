@@ -68,6 +68,12 @@ def compute_stock_scores(stock_data):
         if len(data) < 20:
             continue
 
+        # Ensure 'Volume' column exists and fill NaNs
+        if 'Volume' not in data.columns or data['Volume'].isna().all():
+            data['Volume'] = 0  # Default volume if missing
+        else:
+            data['Volume'].fillna(0, inplace=True)  # Fill NaNs with 0
+
         momentum_score = min(max((data['Close'].pct_change().iloc[-1] * 200), 0), 10)
         rsi = data['Close'].rolling(window=14).mean().iloc[-1]
         rsi_score = 10 if rsi < 30 else 4 if rsi < 50 else 0
