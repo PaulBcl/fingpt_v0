@@ -10,6 +10,18 @@ import time
 # Expand Streamlit to full width
 st.set_page_config(layout="wide")
 
+# Expander to show example recommendation
+with st.expander("📌 Example Stock Recommendation", expanded=False):
+    st.write("Here is an example of what a stock recommendation might look like based on our strategy:")
+    example_df = pd.DataFrame({
+        "Stock": ["NVDA"],
+        "Momentum %": [7.85],
+        "RSI": [45.6],
+        "SMA20": [320.45],
+        "Trend Alert": ["📈 Uptrend detected"]
+    })
+    st.dataframe(example_df)
+
 # Define stock pools with more tickers
 FRANCE_STOCKS = ['ML.PA', 'ALSTOM.PA', 'DG.PA', 'PUB.PA', 'RNO.PA', 'ACA.PA', 'BN.PA', 'AI.PA', 'STM.PA', 'CAP.PA']  # Expanded mid-cap list
 ASIA_STOCKS = ['9984.T', '700.HK', '005930.KQ', 'RELIANCE.NS', 'BABA', 'TCEHY', 'JD', 'NTES', 'SE', 'SONY']  # Expanded Asia stocks
