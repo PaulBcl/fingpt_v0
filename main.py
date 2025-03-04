@@ -105,12 +105,18 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
               f"- Overall Score: {overall}/10 \n"
               f"Provide a short investment recommendation, stating whether it's a good buy, hold, or avoid.")
 
-    response = openai.ChatCompletion.create(
-        model="gpt-4",
-        messages=[{"role": "system", "content": "You are a financial analyst providing stock investment insights."},
-                  {"role": "user", "content": prompt}]
-    )
-    return response["choices"][0]["message"]["content"]
+    try:
+        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": "You are a financial analyst providing stock investment insights."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"AI analysis unavailable: {str(e)}"
 
 # Display top 5 stocks with AI commentary
 st.subheader("🏆 Top 5 Stock Picks Overall")
