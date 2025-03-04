@@ -105,7 +105,7 @@ selected_stocks, top_momentum, top_volume, top_sentiment, api_usage_percent = sc
 
 # Display API usage information
 st.sidebar.subheader("📊 API Usage")
-st.sidebar.progress(api_usage_percent / 100)
+st.sidebar.progress(min(api_usage_percent / 100, 1.0))
 st.sidebar.write(f"NewsAPI Usage: {api_usage_percent:.2f}% of limit")
 
 # Display recommendations in columns for a better layout
