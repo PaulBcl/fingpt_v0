@@ -17,7 +17,7 @@ ALL_STOCKS = FRANCE_STOCKS + ASIA_STOCKS + US_STOCKS
 
 # API Limit Configuration
 NEWSAPI_LIMIT = 1000  # Adjust based on your NewsAPI plan
-NEWSAPI_KEY = "YOUR_NEWSAPI_KEY"  # Make sure to replace with actual API Key
+NEWSAPI_KEY = "c45a33e5851c470ea9d6bdbab7dab14c"  # Make sure to replace with actual API Key
 
 # Define sentiment analysis function
 def get_sentiment(text):
@@ -38,7 +38,7 @@ def fetch_stock_data(stock_list):
 # Fetch market news sentiment and track API usage
 def fetch_market_news(stock):
     query = stock.replace(".PA", "").replace(".T", "").replace(".KQ", "")  # Simplify stock names for better search
-    url = f'https://newsapi.org/v2/everything?q={query}&language=en&apiKey={c45a33e5851c470ea9d6bdbab7dab14c}'
+    url = f'https://newsapi.org/v2/everything?q={query}&language=en&apiKey={NEWSAPI_KEY}'
 
     try:
         response = requests.get(url).json()
