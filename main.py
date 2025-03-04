@@ -17,6 +17,7 @@ ALL_STOCKS = FRANCE_STOCKS + ASIA_STOCKS + US_STOCKS
 
 # API Limit Configuration
 NEWSAPI_LIMIT = 1000  # Adjust based on your NewsAPI plan
+NEWSAPI_KEY = "YOUR_NEWSAPI_KEY"  # Make sure to replace with actual API Key
 
 # Define sentiment analysis function
 def get_sentiment(text):
@@ -36,18 +37,30 @@ def fetch_stock_data(stock_list):
 
 # Fetch market news sentiment and track API usage
 def fetch_market_news(stock):
-    url = f'https://newsapi.org/v2/everything?q={stock}&apiKey=c45a33e5851c470ea9d6bdbab7dab14c'
-    response = requests.get(url).json()
+    query = stock.replace(".PA", "").replace(".T", "").replace(".KQ", "")  # Simplify stock names for better search
+    url = f'https://newsapi.org/v2/everything?q={query}&language=en&apiKey={c45a33e5851c470ea9d6bdbab7dab14c}'
 
-    api_usage = response.get('totalResults', 0)  # Track API usage percentage
-    api_usage_percent = min((api_usage / NEWSAPI_LIMIT) * 100, 100)  # Ensure max is 100%
+    try:
+        response = requests.get(url).json()
 
-    if 'articles' in response:
+        # Debug: Print API response
+        print(f"NewsAPI Response for {stock}: {response}")
+
+        if 'articles' not in response or 'totalResults' not in response:
+            print(f"Warning: No articles found for {stock}")
+            return 0, 0
+
+        api_usage = response.get('totalResults', 0)  # Track API usage percentage
+        api_usage_percent = min((api_usage / NEWSAPI_LIMIT) * 100, 100)  # Ensure max is 100%
+
         headlines = [article['title'] for article in response['articles'][:5]]
         sentiment_scores = [get_sentiment(headline) for headline in headlines]
         avg_sentiment = sum(sentiment_scores) / len(sentiment_scores) if sentiment_scores else 0
         return avg_sentiment, api_usage_percent
-    return 0, api_usage_percent
+
+    except Exception as e:
+        print(f"Error fetching news for {stock}: {e}")
+        return 0, 0
 
 # Screen stocks based on criteria
 def screen_stocks(stock_data):
