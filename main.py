@@ -15,6 +15,9 @@ ASIA_STOCKS = ['9984.T', '700.HK', '005930.KQ', 'RELIANCE.NS', 'BABA', 'TCEHY', 
 US_STOCKS = ['NVDA', 'TSLA', 'PLTR', 'SOFI', 'COIN', 'AMD', 'RBLX', 'UPST', 'CRWD', 'FSLY', 'NET']  # Growth & small-cap stocks
 ALL_STOCKS = FRANCE_STOCKS + ASIA_STOCKS + US_STOCKS
 
+# API Limit Configuration
+NEWSAPI_LIMIT = 1000  # Adjust based on your NewsAPI plan
+
 # Define sentiment analysis function
 def get_sentiment(text):
     sentiment = TextBlob(text).sentiment.polarity
@@ -36,14 +39,15 @@ def fetch_market_news(stock):
     url = f'https://newsapi.org/v2/everything?q={stock}&apiKey=YOUR_NEWSAPI_KEY'
     response = requests.get(url).json()
 
-    api_usage = response.get('totalResults', 0)  # Track API usage
+    api_usage = response.get('totalResults', 0)  # Track API usage percentage
+    api_usage_percent = min((api_usage / NEWSAPI_LIMIT) * 100, 100)  # Ensure max is 100%
 
     if 'articles' in response:
         headlines = [article['title'] for article in response['articles'][:5]]
         sentiment_scores = [get_sentiment(headline) for headline in headlines]
         avg_sentiment = sum(sentiment_scores) / len(sentiment_scores) if sentiment_scores else 0
-        return avg_sentiment, api_usage
-    return 0, api_usage
+        return avg_sentiment, api_usage_percent
+    return 0, api_usage_percent
 
 # Screen stocks based on criteria
 def screen_stocks(stock_data):
@@ -51,7 +55,7 @@ def screen_stocks(stock_data):
     momentum_top3 = []
     volume_top3 = []
     sentiment_top3 = []
-    total_api_usage = 0
+    total_api_usage_percent = 0
 
     for stock, data in stock_data.items():
         if len(data) < 10:
@@ -62,8 +66,8 @@ def screen_stocks(stock_data):
         price_change = (last_close - prev_close) / prev_close * 100
 
         volume_spike = data['Volume'].iloc[-1] > data['Volume'].mean() * 1.5
-        sentiment, api_usage = fetch_market_news(stock)
-        total_api_usage += api_usage
+        sentiment, api_usage_percent = fetch_market_news(stock)
+        total_api_usage_percent += api_usage_percent
 
         if price_change > 5 and volume_spike and sentiment > 0.1:
             selected_stocks.append((stock, price_change, sentiment))
@@ -76,7 +80,7 @@ def screen_stocks(stock_data):
     volume_top3.sort(key=lambda x: x[1], reverse=True)
     sentiment_top3.sort(key=lambda x: x[1], reverse=True)
 
-    return selected_stocks, momentum_top3[:3], volume_top3[:3], sentiment_top3[:3], total_api_usage
+    return selected_stocks, momentum_top3[:3], volume_top3[:3], sentiment_top3[:3], total_api_usage_percent
 
 # Streamlit UI
 st.title("AI Stock Picker")
@@ -84,13 +88,14 @@ st.write("Stock picks based on momentum, volume, and sentiment analysis.")
 
 # Execute screening
 stock_data = fetch_stock_data(ALL_STOCKS)
-selected_stocks, top_momentum, top_volume, top_sentiment, api_usage = screen_stocks(stock_data)
+selected_stocks, top_momentum, top_volume, top_sentiment, api_usage_percent = screen_stocks(stock_data)
 
 # Display API usage information
 st.sidebar.subheader("📊 API Usage")
-st.sidebar.write(f"NewsAPI Calls Used: {api_usage}")
+st.sidebar.progress(api_usage_percent / 100)
+st.sidebar.write(f"NewsAPI Usage: {api_usage_percent:.2f}% of limit")
 
-# Display recommendations
+# Display recommendations in columns for a better layout
 if selected_stocks:
     df = pd.DataFrame(selected_stocks, columns=["Stock", "Price Change (%)", "Sentiment Score"])
     df["Action"] = "BUY"
@@ -98,17 +103,22 @@ if selected_stocks:
 else:
     st.write("No stocks meet all criteria today. Here are the top picks by category:")
 
-    st.subheader("📈 Top 3 Momentum Stocks")
-    df_momentum = pd.DataFrame(top_momentum, columns=["Stock", "Price Change (%)"])
-    st.dataframe(df_momentum)
+    col1, col2, col3 = st.columns(3)
 
-    st.subheader("📊 Top 3 Volume Surge Stocks")
-    df_volume = pd.DataFrame(top_volume, columns=["Stock", "Volume"])
-    st.dataframe(df_volume)
+    with col1:
+        st.subheader("📈 Top 3 Momentum Stocks")
+        df_momentum = pd.DataFrame(top_momentum, columns=["Stock", "Price Change (%)"])
+        st.dataframe(df_momentum)
 
-    st.subheader("📰 Top 3 Sentiment-Driven Stocks")
-    df_sentiment = pd.DataFrame(top_sentiment, columns=["Stock", "Sentiment Score"])
-    st.dataframe(df_sentiment)
+    with col2:
+        st.subheader("📊 Top 3 Volume Surge Stocks")
+        df_volume = pd.DataFrame(top_volume, columns=["Stock", "Volume"])
+        st.dataframe(df_volume)
+
+    with col3:
+        st.subheader("📰 Top 3 Sentiment-Driven Stocks")
+        df_sentiment = pd.DataFrame(top_sentiment, columns=["Stock", "Sentiment Score"])
+        st.dataframe(df_sentiment)
 
 # Plot price trends for selected stocks
 if selected_stocks:
