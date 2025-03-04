@@ -47,7 +47,7 @@ NEWSAPI_KEY = "c45a33e5851c470ea9d6bdbab7dab14c"
 refresh_interval = st.sidebar.slider("Auto-refresh interval (minutes)", 1, 30, 30)
 
 # Batch fetch stock data for multiple tickers at once
-@st.experimental_memo(ttl=refresh_interval * 60)
+@st.cache_data(ttl=refresh_interval * 60)
 def fetch_stock_data(stock_list):
     try:
         data = yf.download(stock_list, period='3mo', group_by='ticker')
