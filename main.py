@@ -36,7 +36,7 @@ def fetch_stock_data(stock_list):
 
 # Fetch market news sentiment and track API usage
 def fetch_market_news(stock):
-    url = f'https://newsapi.org/v2/everything?q={stock}&apiKey=YOUR_NEWSAPI_KEY'
+    url = f'https://newsapi.org/v2/everything?q={stock}&apiKey=c45a33e5851c470ea9d6bdbab7dab14c'
     response = requests.get(url).json()
 
     api_usage = response.get('totalResults', 0)  # Track API usage percentage
