@@ -77,7 +77,15 @@ def compute_stock_scores(stock_data):
         momentum_score = min(max((data['Close'].pct_change().iloc[-1] * 200), 0), 10)
         rsi = data['Close'].rolling(window=14).mean().iloc[-1]
         rsi_score = 10 if rsi < 30 else 4 if rsi < 50 else 0
-        volume_score = 10 if data['Volume'].iloc[-1] > data['Volume'].rolling(window=20).mean() * 1.5 else 4 if data['Volume'].iloc[-1] > data['Volume'].rolling(window=20).mean() else 0
+        rolling_avg_volume = data['Volume'].rolling(window=20).mean().iloc[-1] if len(data) >= 20 else data['Volume'].mean()
+        last_volume = data['Volume'].iloc[-1]
+
+        if last_volume > rolling_avg_volume * 1.5:
+            volume_score = 10
+        elif last_volume > rolling_avg_volume:
+            volume_score = 4
+        else:
+            volume_score = 0
 
         overall_score = (momentum_score + rsi_score + volume_score) / 3
         scores.append((stock, momentum_score, rsi_score, volume_score, overall_score))
