@@ -3,12 +3,20 @@ import requests
 import pandas as pd
 import streamlit as st
 import plotly.express as px
+import openai
 from textblob import TextBlob
 import datetime
 import time
+import os
+import streamlit as st
+import openai
 
 # Expand Streamlit to full width
 st.set_page_config(layout="wide")
+
+# OpenAI API Key (Replace with your own key)
+OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+openai.api_key = OPENAI_API_KEY
 
 # Expander to show example recommendation
 with st.expander("📌 Example Stock Recommendation", expanded=False):
@@ -74,10 +82,31 @@ def compute_stock_scores(stock_data):
 # Fetch top 5 stocks
 top_stocks = compute_stock_scores(stock_data)
 
-# Display top 5 stocks with scores
+# Generate AI-based commentary
+def generate_ai_commentary(stock, momentum, rsi, volume, overall):
+    prompt = (f"Analyze the stock {stock} based on the following indicators: \n"
+              f"- Momentum Score: {momentum}/10 \n"
+              f"- RSI Score: {rsi}/10 \n"
+              f"- Volume Score: {volume}/10 \n"
+              f"- Overall Score: {overall}/10 \n"
+              f"Provide a short investment recommendation, stating whether it's a good buy, hold, or avoid.")
+
+    response = openai.ChatCompletion.create(
+        model="gpt-4",
+        messages=[{"role": "system", "content": "You are a financial analyst providing stock investment insights."},
+                  {"role": "user", "content": prompt}]
+    )
+    return response["choices"][0]["message"]["content"]
+
+# Display top 5 stocks with AI commentary
 st.subheader("🏆 Top 5 Stock Picks Overall")
 df_top_stocks = pd.DataFrame(top_stocks, columns=["Stock", "Momentum Score", "RSI Score", "Volume Score", "Overall Score"])
 st.dataframe(df_top_stocks)
+
+st.subheader("💡 AI-Powered Investment Insights")
+for stock, momentum, rsi, volume, overall in top_stocks:
+    ai_comment = generate_ai_commentary(stock, momentum, rsi, volume, overall)
+    st.write(f"**{stock} Analysis:** {ai_comment}")
 
 # Add refresh button
 def refresh_data():
