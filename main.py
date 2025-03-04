@@ -53,7 +53,13 @@ def fetch_stock_data(stock_list):
         try:
             data = yf.Ticker(stock).history(period='3mo')
             stock_data[stock] = data if not data.empty else None
-        except Exception as e:
+        except openai.APIError as e:
+        return f"AI analysis unavailable: {str(e)}"
+    except openai.AuthenticationError:
+        return "AI analysis unavailable: Invalid OpenAI API key."
+    except openai.RateLimitError:
+        return "AI analysis unavailable: Rate limit exceeded. Try again later."
+    except Exception as e:
             print(f"Error fetching {stock}: {e}")
             stock_data[stock] = None
     return stock_data
@@ -106,9 +112,11 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
               f"Provide a short investment recommendation, stating whether it's a good buy, hold, or avoid.")
 
     try:
+        if not OPENAI_API_KEY:
+            return "AI analysis unavailable: OpenAI API key is missing."
         client = openai.OpenAI(api_key=OPENAI_API_KEY)
         response = client.chat.completions.create(
-            model="gpt-4-turbo",
+            model="gpt-4",
             messages=[
                 {"role": "system", "content": "You are a financial analyst providing stock investment insights."},
                 {"role": "user", "content": prompt}
