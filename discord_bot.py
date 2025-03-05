@@ -1,14 +1,13 @@
 import discord
 import openai
 import requests
-import streamlit as st
-import base64
+import os
 
-# Load secrets from Streamlit Dashboard
-BOT_TOKEN = st.secrets["discord"]["bot_token"]
-OPENAI_API_KEY = st.secrets["openai"]["OPENAI_API_KEY"]
-GITHUB_REPO = st.secrets["github"]["GITHUB_REPO"]
-GITHUB_TOKEN = st.secrets["github"]["GITHUB_TOKEN"]
+# Load secrets from GitHub Actions environment variables
+BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GITHUB_REPO = os.getenv("GITHUB_REPO")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 
 # GitHub API URL for modifying files
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/contents/"
@@ -32,7 +31,7 @@ async def on_message(message):
 
     prompt = message.content.strip()
 
-    # GPT-4 analyzes and determines necessary modifications
+    # Use GPT-4 to interpret the instruction
     instruction = f"""
     You are an AI assistant modifying a Streamlit Python app.
     The user asked: '{prompt}'.
