@@ -45,11 +45,35 @@ client_openai = openai.OpenAI(api_key=OPENAI_API_KEY)
 # Define Discord client
 intents = discord.Intents.default()
 intents.messages = True
+intents.message_content = True  # ✅ Ensure bot can read messages
 client = discord.Client(intents=intents)
 
 @client.event
 async def on_ready():
     print(f"✅ Logged in as {client.user}")
 
+@client.event
+async def on_message(message):
+    print(f"📩 Received message: {message.content}")  # ✅ Debugging: Print all messages
+
+    if message.author == client.user:
+        return
+
+    prompt = message.content.strip()
+
+    try:
+        response = client_openai.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        reply = response.choices[0].message.content
+
+        await message.channel.send(reply)
+    except Exception as e:
+        error_trace = traceback.format_exc()
+        print(f"❌ Error occurred:\n{error_trace}")
+        await message.channel.send(f"❌ Error processing request:\n```{e}```")
+
 # Run the bot
+print("🚀 Starting Discord bot...")
 client.run(DISCORD_BOT_TOKEN)
