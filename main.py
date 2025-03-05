@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import requests
+import openai  # Add this import
 from data_fetching import fetch_stock_data
 from stock_scoring import compute_stock_scores
 from ai_commentary import generate_ai_commentary
