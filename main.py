@@ -1,13 +1,9 @@
 import yfinance as yf
-import requests
 import pandas as pd
 import streamlit as st
 import plotly.express as px
 import openai
-from textblob import TextBlob
-import datetime
-import time
-import os
+import requests
 import ta
 
 # Expand Streamlit to full width
@@ -16,7 +12,7 @@ st.set_page_config(layout="wide")
 # OpenAI API Key (Replace with your own key)
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 
-# Expander to show example recommendation
+# Example Stock Recommendation (unchanged)
 with st.expander("📌 Example Stock Recommendation", expanded=False):
     st.write("Here is an example of what a stock recommendation might look like based on our strategy:")
     example_df = pd.DataFrame({
@@ -49,14 +45,26 @@ refresh_interval = st.sidebar.slider("Auto-refresh interval (minutes)", 1, 30, 3
 @st.cache_data(ttl=refresh_interval * 60)
 def fetch_stock_data(stock_list):
     stock_data = {}
-    try:
-        data = yf.download(stock_list, period='3mo', group_by='ticker')
-        for stock in stock_list:
-            stock_data[stock] = data[stock] if stock in data else None
-    except Exception as e:
-        st.warning(f"Error fetching data: {e}")
-        return {}
+    for stock in stock_list:
+        try:
+            data = yf.Ticker(stock).history(period='3mo')
+            if data.empty:
+                stock_data[stock] = None  # If data is empty, store None for that stock
+            else:
+                stock_data[stock] = data
+        except Exception as e:
+            st.warning(f"Error fetching data for {stock}: {e}")
+            stock_data[stock] = None  # Handle errors and set data as None
     return stock_data
+
+# Fetch stock data
+stock_data = fetch_stock_data(ALL_STOCKS)
+
+# Compute percentage of valid tickers
+def calculate_valid_data_percentage(stock_data):
+    valid_data_count = sum(1 for data in stock_data.values() if data is not None and not data.empty)
+    total_tickers = len(stock_data)
+    return (valid_data_count / total_tickers) * 100 if total_tickers > 0 else 0
 
 # Use @st.cache_data instead of @st.experimental_memo
 @st.cache_data(ttl=refresh_interval * 60)
@@ -64,11 +72,13 @@ def compute_stock_scores(stock_data):
     scores = []
     for stock, data in stock_data.items():
         if data is None or len(data) < 20:
+            st.warning(f"No sufficient data for {stock} or data is empty.")
             continue
 
         # Check that 'data' is a DataFrame and contains required columns
         if 'Close' not in data or 'Volume' not in data:
-            continue  # Skip if 'Close' or 'Volume' columns are missing
+            st.warning(f"Missing necessary columns for {stock}. Skipping...")
+            continue
 
         # Ensure 'Volume' exists and fill NaNs
         data['Volume'].fillna(0, inplace=True)
@@ -128,9 +138,41 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
     except Exception as e:
         return f"AI analysis unavailable due to an unexpected error: {str(e)}"
 
+# API Test Function (unchanged)
+def test_apis():
+    api_results = {}
+    # Test OpenAI API
+    try:
+        if not OPENAI_API_KEY:
+            api_results['OpenAI'] = "Error: API Key missing"
+        else:
+            openai.api_key = OPENAI_API_KEY
+            openai.Model.list()  # A simple API call to check connectivity
+            api_results['OpenAI'] = "Working"
+    except Exception as e:
+        api_results['OpenAI'] = f"Error: {str(e)}"
+
+    # Test Yahoo Finance API (unchanged)
+    try:
+        yf.Ticker('AAPL').history(period='1d')  # A simple call to check Yahoo Finance
+        api_results['Yahoo Finance'] = "Working"
+    except Exception as e:
+        api_results['Yahoo Finance'] = f"Error: {str(e)}"
+
+    # Test NewsAPI (unchanged)
+    try:
+        news_response = requests.get(f'https://newsapi.org/v2/top-headlines?country=us&apiKey={NEWSAPI_KEY}')
+        if news_response.status_code == 200:
+            api_results['NewsAPI'] = "Working"
+        else:
+            api_results['NewsAPI'] = f"Error: Status code {news_response.status_code}"
+    except Exception as e:
+        api_results['NewsAPI'] = f"Error: {str(e)}"
+
+    return api_results
+
 # Display top 5 stocks with AI commentary
 st.subheader("🏆 Top 3 Stock Picks Overall")
-stock_data = fetch_stock_data(ALL_STOCKS)
 top_stocks = compute_stock_scores(stock_data)
 df_top_stocks = pd.DataFrame(top_stocks, columns=["Stock", "Momentum Score", "RSI Score", "Volume Score", "Overall Score"])
 df_top_stocks = df_top_stocks.round(2)
@@ -149,7 +191,19 @@ for stock, momentum, rsi, volume, overall in top_stocks:
     fig = px.line(stock_data[stock], x=stock_data[stock].index, y=["Close", "Volume"], title=f"{stock} Price & Volume (Last 10 Weeks)")
     st.plotly_chart(fig)
 
-# Add refresh button
+# Show valid data percentage in the sidebar
+valid_data_percentage = calculate_valid_data_percentage(stock_data)
+st.sidebar.write(f"✅ **Valid Data Found**: {valid_data_percentage:.2f}% of the tickers have data available for analysis.")
+
+# Test APIs Button (unchanged)
+if st.sidebar.button("🔍 Test APIs"):
+    st.sidebar.write("Testing APIs...")
+    results = test_apis()
+
+    for api, status in results.items():
+        st.sidebar.write(f"{api}: {status}")
+
+# Add refresh button (unchanged)
 def refresh_data():
     if 'refresh_triggered' not in st.session_state or not st.session_state.refresh_triggered:
         st.session_state.refresh_triggered = True
