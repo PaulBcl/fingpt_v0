@@ -6,3 +6,6 @@ textblob
 plotly
 openai
 numpy
+os
+gitpython
+discord
