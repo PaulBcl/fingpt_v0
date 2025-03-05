@@ -117,21 +117,21 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
         # Set the OpenAI API key
         openai.api_key = OPENAI_API_KEY
 
-        # Use the correct chat completions method for chat models
-        response = openai.chat_completions.create(
-            model="gpt-3.5-turbo",  # Updated model, use 'gpt-4' if you have access
+        # Use the correct ChatCompletion method with GPT-4
+        response = openai.ChatCompletion.create(
+            model="gpt-4",  # Use GPT-4 for the analysis
             messages=[
                 {"role": "system", "content": "You are a financial analyst providing stock investment insights."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=150,  # Adjust max_tokens as needed
-            temperature=0.5,  # Controls the randomness of the response (0.0 to 1.0)
+            max_tokens=150,  # You can adjust the token length as necessary
+            temperature=0.5,  # Adjust temperature (creativity) from 0.0 to 1.0
         )
 
-        # Extract the response text
+        # Extract and return the content of the AI response
         return response['choices'][0]['message']['content'].strip()
 
-    except Exception as e:
+    except openai.error.OpenAIError as e:
         return f"AI analysis unavailable: {str(e)}"
 
 
