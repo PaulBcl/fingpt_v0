@@ -8,7 +8,6 @@ import traceback
 import json
 import ast  # Safer than eval()
 
-
 # Detect if running in GitHub Actions
 RUNNING_IN_GITHUB = "GITHUB_ACTIONS" in os.environ
 
@@ -47,7 +46,6 @@ client_openai = openai.OpenAI(api_key=OPENAI_API_KEY)
 
 # GitHub API URL for modifying files
 GITHUB_API_URL = f"https://api.github.com/repos/{REPO_NAME}/contents/"
-
 
 # ✅ Use explicit privileged intents
 intents = discord.Intents.default()
@@ -96,7 +94,7 @@ async def on_message(message):
             messages=[{"role": "user", "content": instruction}]
         )
 
-        response_content = response["choices"][0]["message"]["content"].strip()
+        response_content = response.choices[0].message.content.strip()
 
         try:
             # Ensure OpenAI response is correctly formatted
@@ -141,7 +139,6 @@ async def on_message(message):
         error_trace = traceback.format_exc()
         print(f"❌ Error occurred:\n{error_trace}")
         await message.channel.send(f"❌ Error processing request:\n```{e}```")
-
 
 # Run the bot
 print("🚀 Starting Discord bot...")
