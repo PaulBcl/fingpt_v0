@@ -4,6 +4,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 import plotly.subplots as sp
 
+@st.cache_data(ttl=300)  # Cache for 5 minutes
 def create_stock_recommendation_table(top_stocks, stock_data, generate_ai_commentary):
     """
     Create a compact and visual stock recommendation table.
@@ -22,49 +23,131 @@ def create_stock_recommendation_table(top_stocks, stock_data, generate_ai_commen
     # Creating DataFrame for better visualization
     table_data = []
     for stock, momentum, pe_score, debt_score, roe_score, overall in top_stocks:
+        financials = stock_data.get(stock, {}).get("financials", {})
+        if not financials:
+            continue
+
+        ai_comment = generate_ai_commentary(stock, financials, (momentum, pe_score, debt_score, roe_score))
+        
         table_data.append({
             "Stock": stock,
-            "Momentum Score": f"{momentum:.2f}%" if momentum else "N/A",
-            "P/E Score": round(pe_score, 2),
-            "Debt Score": round(debt_score, 2),
-            "ROE Score": f"{roe_score:.2f}%" if roe_score else "N/A",
-            "Overall Score": round(overall, 2),
-            "AI Commentary": generate_ai_commentary(stock, stock_data[stock]["financials"],
-                                                    (momentum, pe_score, debt_score, roe_score))
+            "Momentum": f"{momentum:.2f}%",
+            "P/E Score": f"{pe_score}/10",
+            "Debt Score": f"{debt_score}/10",
+            "ROE Score": f"{roe_score}/10",
+            "Overall": f"{overall:.2f}/10",
+            "AI Analysis": ai_comment
         })
+
+    if not table_data:
+        st.warning("No valid stock data available for the table.")
+        return
 
     df = pd.DataFrame(table_data)
 
-    # Use Streamlit's table display for better formatting
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    # Apply custom styling to the DataFrame
+    def highlight_scores(val):
+        try:
+            score = float(val.split('/')[0])
+            if score >= 8:
+                return 'background-color: #dcfce7'  # Light green
+            elif score >= 5:
+                return 'background-color: #fef9c3'  # Light yellow
+            else:
+                return 'background-color: #fee2e2'  # Light red
+        except:
+            return ''
+
+    # Apply styling to score columns
+    score_columns = ['Momentum', 'P/E Score', 'Debt Score', 'ROE Score', 'Overall']
+    styled_df = df.style.applymap(highlight_scores, subset=score_columns)
+
+    # Display the styled DataFrame
+    st.dataframe(
+        styled_df,
+        use_container_width=True,
+        hide_index=True,
+        height=400  # Fixed height for better scrolling
+    )
+
+@st.cache_data(ttl=300)  # Cache for 5 minutes
+def format_stock_metrics(momentum, pe_score, debt_score, roe_score, overall):
+    """Format stock metrics for display with consistent styling."""
+    return {
+        "Momentum": f"{momentum:.2f}%",
+        "P/E Score": f"{pe_score}/10",
+        "Debt Score": f"{debt_score}/10",
+        "ROE Score": f"{roe_score}/10",
+        "Overall Score": f"{overall:.2f}/10"
+    }
 
 def display_top_stocks(top_stocks, stock_data, generate_ai_commentary):
     """
     Display the top selected stocks with AI commentary.
+    
+    Args:
+        top_stocks (list): List of tuples containing stock data
+        stock_data (dict): Dictionary containing detailed stock information
+        generate_ai_commentary (callable): Function to generate AI analysis
     """
     if not top_stocks:
         st.warning("No top stocks available.")
         return
 
-    for stock_data_entry in top_stocks:
+    # Create columns for better layout
+    cols = st.columns(len(top_stocks))
+    
+    for idx, stock_data_entry in enumerate(top_stocks):
         if not isinstance(stock_data_entry, tuple) or len(stock_data_entry) != 6:
             st.error(f"❌ Unexpected data format: {stock_data_entry} (expected tuple with 6 elements)")
-            continue  # Skip incorrect entries
+            continue
 
         stock, momentum, pe_score, debt_score, roe_score, overall = stock_data_entry
         financials = stock_data.get(stock, {}).get("financials", {})
 
-        # Ensure financials are valid before using them in AI commentary
+        # Skip if no financial data
         if not financials:
             st.warning(f"⚠️ No financial data found for {stock}. Skipping AI commentary.")
             continue
 
-        ai_comment = generate_ai_commentary(stock, financials, (momentum, pe_score, debt_score, roe_score))
+        # Format metrics
+        metrics = format_stock_metrics(momentum, pe_score, debt_score, roe_score, overall)
+        
+        with cols[idx]:
+            # Create a card-like container for each stock
+            st.markdown(f"""
+            <div style="
+                background-color: #f8fafc;
+                border-radius: 10px;
+                padding: 20px;
+                margin-bottom: 20px;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            ">
+                <h3 style="color: #1e40af; margin-bottom: 15px;">{stock}</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    {''.join(f'''
+                    <div style="background-color: white; padding: 10px; border-radius: 5px;">
+                        <small style="color: #64748b;">{metric}</small>
+                        <p style="margin: 0; font-weight: bold; color: #1e40af;">{value}</p>
+                    </div>
+                    ''' for metric, value in metrics.items())}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
-        st.write(f"**{stock}**")
-        st.write(f"📊 Momentum: {momentum:.2f}, P/E: {pe_score}, Debt: {debt_score}, ROE: {roe_score}, Overall: {overall:.2f}")
-        st.write(f"🧠 AI Commentary: {ai_comment}")
-
+            # Generate and display AI commentary
+            ai_comment = generate_ai_commentary(stock, financials, (momentum, pe_score, debt_score, roe_score))
+            st.markdown(f"""
+            <div style="
+                background-color: #e0e7ff;
+                border-radius: 10px;
+                padding: 15px;
+                margin-top: 10px;
+            ">
+                <h4 style="color: #3730a3; margin-bottom: 10px;">AI Analysis</h4>
+                <p style="font-size: 0.9em; color: #1e40af;">{ai_comment}</p>
+            </div>
+            """, unsafe_allow_html=True)
 
 def create_comprehensive_stock_view(top_stocks, stock_data, generate_ai_commentary):
     """
