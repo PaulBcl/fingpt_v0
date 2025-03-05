@@ -56,26 +56,72 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    print(f"📩 Received message: {message.content}")  # ✅ Debugging: Print all messages
+    print(f"📩 Received message: {message.content}")  # ✅ Debugging
 
     if message.author == client.user:
         return
 
     prompt = message.content.strip()
 
+    instruction = f"""
+    You are an AI assistant responsible for modifying a Python-based Streamlit application.
+    The user asked: '{prompt}'.
+
+    - Identify all necessary files that require changes.
+    - Return the full modified content of each file that needs updating.
+    - The response must be in **JSON format** with:
+      - "files": A dictionary where keys are filenames and values are their new content.
+
+    Example of expected output:
+    {{
+      "files": {{
+        "main.py": "import streamlit as st\nst.title('Hello from Discord')",
+        "ui_components.py": "..."
+      }}
+    }}
+
+    Do **not** return explanations, only the raw JSON.
+    """
+
     try:
         response = client_openai.chat.completions.create(
             model="gpt-4",
-            messages=[{"role": "user", "content": prompt}]
+            messages=[{"role": "user", "content": instruction}]
         )
-        reply = response.choices[0].message.content
 
-        await message.channel.send(reply)
+        # Convert response from OpenAI to JSON
+        updated_files = eval(response.choices[0].message.content)
+
+        headers = {"Authorization": f"token {TOKEN_REPO}"}
+
+        for file_path, new_content in updated_files["files"].items():
+            # Fetch the current file's SHA (GitHub requires this for updates)
+            file_info = requests.get(GITHUB_API_URL + file_path, headers=headers).json()
+            file_sha = file_info.get("sha", None)
+
+            # Encode content to Base64
+            encoded_content = base64.b64encode(new_content.encode("utf-8")).decode("utf-8")
+
+            # Prepare the update payload
+            update_data = {
+                "message": f"Auto-update based on Discord command: {prompt}",
+                "content": encoded_content,
+                "sha": file_sha
+            }
+
+            response = requests.put(GITHUB_API_URL + file_path, json=update_data, headers=headers)
+
+            if response.status_code == 200:
+                await message.channel.send(f"✅ {file_path} updated successfully in GitHub!")
+            else:
+                await message.channel.send(f"❌ Failed to update {file_path}. Check logs.")
+
     except Exception as e:
         error_trace = traceback.format_exc()
         print(f"❌ Error occurred:\n{error_trace}")
         await message.channel.send(f"❌ Error processing request:\n```{e}```")
 
+    
 # Run the bot
 print("🚀 Starting Discord bot...")
 client.run(DISCORD_BOT_TOKEN)
