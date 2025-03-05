@@ -4,7 +4,7 @@ import requests
 import os
 
 # Load secrets from GitHub Actions environment variables
-BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+BOT_TOKEN = os.getenv("bot_token")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GITHUB_REPO = os.getenv("GITHUB_REPO")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
