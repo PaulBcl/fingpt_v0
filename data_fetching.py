@@ -13,6 +13,8 @@ def fetch_stock_data(stock_list):
     Returns:
     dict: A dictionary containing stock data for each ticker.
     """
+    stock_data = {}  # ✅ Initialize stock_data at the beginning
+
     for stock in stock_list:
         try:
             ticker = yf.Ticker(stock)
