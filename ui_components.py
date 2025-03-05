@@ -41,14 +41,17 @@ def display_top_stocks(top_stocks, stock_data, generate_ai_commentary):
 
             Parameters:
             - momentum (float): Stock's momentum score.
-            - rsi (float): Relative Strength Index.
-            - news_sentiment (float): Sentiment score from financial news.
+            - rsi (float or None): Relative Strength Index (if None, assume neutral 50).
+            - news_sentiment (float or None): Sentiment score from financial news (if None, assume 0).
 
             Returns:
             - str: Emoji + Sentiment description.
             """
             if news_sentiment is None:
-                news_sentiment = 0  # Default if no data available
+                news_sentiment = 0  # Default to neutral if no data available
+
+            if rsi is None:
+                rsi = 50  # Default to neutral RSI if missing
 
             # Weight factors (adjust as needed)
             momentum_weight = 0.4
