@@ -4,6 +4,7 @@ import requests
 import os
 import streamlit as st
 import base64
+import traceback
 
 # Detect if running in GitHub Actions
 RUNNING_IN_GITHUB = "GITHUB_ACTIONS" in os.environ
@@ -62,18 +63,25 @@ async def on_message(message):
     """
 
     try:
+        # OpenAI API call
         response = openai.ChatCompletion.create(
             model="gpt-4",
             messages=[{"role": "user", "content": instruction}]
         )
-        updated_files = eval(response["choices"][0]["message"]["content"])  # Convert JSON response
+        print(f"📝 OpenAI Response: {response}")
 
+        updated_files = eval(response["choices"][0]["message"]["content"])  # Convert JSON response
         headers = {"Authorization": f"token {TOKEN_REPO}"}
 
         for file_path, new_content in updated_files["files"].items():
+            print(f"🔄 Updating file: {file_path}")
+
             # Fetch the current file's SHA (GitHub requires this for updates)
             file_info = requests.get(GITHUB_API_URL + file_path, headers=headers).json()
             file_sha = file_info.get("sha", None)
+
+            if not file_sha:
+                print(f"⚠️ Warning: Could not retrieve SHA for {file_path}. Response: {file_info}")
 
             # Encode content to Base64
             encoded_content = base64.b64encode(new_content.encode("utf-8")).decode("utf-8")
@@ -86,15 +94,17 @@ async def on_message(message):
             }
 
             response = requests.put(GITHUB_API_URL + file_path, json=update_data, headers=headers)
+            print(f"🔍 GitHub Response for {file_path}: {response.status_code}, {response.json()}")
 
             if response.status_code == 200:
                 await message.channel.send(f"✅ {file_path} updated successfully!")
             else:
-                await message.channel.send(f"❌ Failed to update {file_path}.")
+                await message.channel.send(f"❌ Failed to update {file_path}. Error: {response.json()}")
 
     except Exception as e:
-        await message.channel.send("❌ An error occurred while processing the request.")
-        print(f"Error: {e}")
+        error_trace = traceback.format_exc()
+        print(f"❌ Error occurred:\n{error_trace}")
+        await message.channel.send(f"❌ Error processing request:\n```{e}```")
 
 # Run the bot
 print("🚀 Starting Discord bot...")
