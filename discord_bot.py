@@ -64,10 +64,13 @@ async def on_message(message):
 
     try:
         # OpenAI API call
-        response = openai.ChatCompletion.create(
+        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+
+        response = client.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": instruction}]
         )
+
         print(f"📝 OpenAI Response: {response}")
 
         updated_files = eval(response["choices"][0]["message"]["content"])  # Convert JSON response
