@@ -131,7 +131,7 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
         # Extract and return the content of the AI response
         return response['choices'][0]['message']['content'].strip()
 
-    except openai.error.OpenAIError as e:
+    except openai.OpenAIError as e:
         return f"AI analysis unavailable: {str(e)}"
 
 
