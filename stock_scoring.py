@@ -18,16 +18,18 @@ def compute_stock_scores(stock_data):
         price_data = data["price_data"]
         financials = data.get("financials", {})  # Ensure financials exist
 
-        # Ensure data integrity
+        # Ensure data integrity with null checks
         volume = price_data.get('Volume', pd.Series([0])).fillna(0).iloc[-1] if "Volume" in price_data else 0
         momentum = price_data["Close"].pct_change().iloc[-1] * 100 if "Close" in price_data else 0
-        pe_ratio = financials.get("pe_ratio", 15)  # Default to avg P/E if missing
-        debt_equity = financials.get("debt_equity", 1)  # Default ratio if missing
-        roe = financials.get("return_on_equity", 0)  # Default to 0 if missing
-
-        # Handle potential None values before comparison
+        
+        # Add null checks for financial metrics
+        pe_ratio = financials.get("pe_ratio")
+        if pe_ratio is None:
+            pe_ratio = 15  # Default to average P/E if missing
+        debt_equity = financials.get("debt_equity")
         if debt_equity is None:
             debt_equity = 1  # Default to 1 if missing
+        roe = financials.get("return_on_equity")
         if roe is None:
             roe = 0  # Default to 0 if missing
 
