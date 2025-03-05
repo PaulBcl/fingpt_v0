@@ -4,10 +4,19 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:  # Allows manual triggering
+  workflow_dispatch:
 
 jobs:
+  cancel-previous:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel previous bot runs
+        uses: styfle/cancel-workflow-action@0.12.0
+        with:
+          access_token: ${{ secrets.TOKEN_REPO }}  # ✅ Only GitHub API access needed here
+
   run-bot:
+    needs: cancel-previous  # ✅ Ensures old bot stops before new one starts
     runs-on: ubuntu-latest
 
     steps:
@@ -26,7 +35,7 @@ jobs:
 
       - name: Run Discord Bot
         env:
-          DISCORD_BOT_TOKEN: ${{ secrets.bot_token }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           REPO_NAME: ${{ secrets.REPO_NAME }}
           TOKEN_REPO: ${{ secrets.TOKEN_REPO }}
