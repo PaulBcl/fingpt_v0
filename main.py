@@ -118,7 +118,7 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
         openai.api_key = OPENAI_API_KEY
 
         # Use the correct ChatCompletion method with GPT-4
-        response = openai.ChatCompletion.create(
+        response = openai.chat_completions.create(
             model="gpt-4",  # Use GPT-4 for the analysis
             messages=[
                 {"role": "system", "content": "You are a financial analyst providing stock investment insights."},
@@ -177,9 +177,12 @@ def test_apis():
         else:
             openai.api_key = OPENAI_API_KEY
             # Make a simple API call to check if the key works
-            openai.Completion.create(
-                model="text-davinci-003",  # or any other model you want to use
-                prompt="Hello, world!",
+            openai.chat_completions.create(
+                model="gpt-4",  # Use GPT-4 for the analysis
+                messages=[
+                    {"role": "system", "content": "Test API functionality."},
+                    {"role": "user", "content": "Test OpenAI API"}
+                ],
                 max_tokens=5
             )
             api_results['OpenAI'] = "Working"
