@@ -119,7 +119,7 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
 
         # Call OpenAI's completions.create method
         response = openai.completions.create(
-            model="text-davinci-003",  # Use a valid model like "text-davinci-003" or "gpt-4"
+            model="gpt-4", 
             prompt=prompt,
             max_tokens=150,  # Adjust for response length
             temperature=0.5,  # Control randomness of the output
