@@ -38,6 +38,37 @@ def create_stock_recommendation_table(top_stocks, stock_data, generate_ai_commen
     # Use Streamlit's table display for better formatting
     st.dataframe(df, use_container_width=True, hide_index=True)
 
+def display_top_stocks(top_stocks, stock_data, generate_ai_commentary):
+    """
+    Display the top recommended stocks with AI commentary.
+
+    Parameters:
+    top_stocks (list): List of tuples containing stock scores.
+    stock_data (dict): Stock data dictionary.
+    generate_ai_commentary (function): AI function for generating insights.
+    """
+    st.subheader("🏆 Top 3 Stock Picks")
+
+    if not top_stocks:
+        st.warning("No top stocks available.")
+        return
+
+    for stock, momentum, pe_score, debt_score, roe_score, overall in top_stocks:
+        financials = stock_data[stock]["financials"]
+        ai_comment = generate_ai_commentary(stock, financials, (momentum, pe_score, debt_score, roe_score))
+
+        st.markdown(f"""
+        <div style="background-color:#f0f2f6; border-radius:10px; padding:15px; margin-bottom:10px; padding:10px;">
+            <h3 style="color:#1e3a8a;">{stock}</h3>
+            <p><b>Momentum:</b> {momentum:.2f}%</p>
+            <p><b>P/E Ratio:</b> {round(pe_score, 2)}</p>
+            <p><b>Debt Score:</b> {round(debt_score, 2)}</p>
+            <p><b>ROE:</b> {roe_score:.2f}%</p>
+            <p><b>Overall Score:</b> {round(overall, 2)}</p>
+            <p><b>AI Commentary:</b> {ai_comment}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
 def create_comprehensive_stock_view(top_stocks, stock_data, generate_ai_commentary):
     """
     Create a comprehensive, compact view of top stock picks with multiple visualizations.
