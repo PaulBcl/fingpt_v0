@@ -16,6 +16,8 @@ if not OPENAI_API_KEY:
 
 openai.api_key = OPENAI_API_KEY
 
+#test on va y arriver
+
 # Function to generate AI-powered stock commentary (GPT-4 Chat Model)
 def generate_ai_commentary(stock, financials, scores):
     prompt = (f"Stock: {stock}\n"
