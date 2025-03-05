@@ -14,9 +14,6 @@ def create_stock_recommendation_table(data):
     df = df.round(2)
     st.dataframe(df)
 
-import streamlit as st
-import pandas as pd
-import plotly.graph_objects as go
 
 def display_top_stocks(top_stocks, stock_data, generate_ai_commentary):
     """

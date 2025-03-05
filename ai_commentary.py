@@ -1,9 +1,20 @@
 import openai
 import streamlit as st
 import hashlib
+import os
 
 # Access OpenAI API key from secrets
-OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]  # Correct way to access the key based on your secret name
+
+# Check if running in Streamlit (st.secrets exists)
+if hasattr(st, "secrets"):
+    OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY", None)
+else:
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+
+# Raise an error if the API key is missing
+if not OPENAI_API_KEY:
+    raise ValueError("❌ ERROR: OPENAI_API_KEY is missing! Set it in Streamlit Secrets or GitHub Actions.")
+
 openai.api_key = OPENAI_API_KEY
 
 # Function to generate AI-powered stock commentary (GPT-4 Chat Model)

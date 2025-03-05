@@ -1,10 +1,23 @@
 import requests
 import base64
+import os
 import streamlit as st
 
 # Load GitHub credentials from Streamlit secrets
 GITHUB_TOKEN = st.secrets["GITHUB_TOKEN"]
 GITHUB_REPO = st.secrets["GITHUB_REPO"]
+
+# Load secrets from GitHub Actions or Streamlit environment variables
+if hasattr(st, "secrets"):
+    GITHUB_REPO =  st.secrets.get("GITHUB_REPO", None)
+    GITHUB_TOKEN =  st.secrets.get("GITHUB_TOKEN", None)
+else:
+    GITHUB_REPO = os.getenv("GITHUB_REPO")
+    GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+
+# Raise an error if the API key is missing
+if not GITHUB_REPO:
+    raise ValueError("❌ ERROR: GITHUB_REPO is missing! Set it in Streamlit Secrets or GitHub Actions.")
 
 def get_file_content(file_path):
     """Retrieve the latest content of a file from GitHub."""

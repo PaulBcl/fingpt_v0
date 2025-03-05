@@ -10,11 +10,19 @@ from ui_components import create_stock_recommendation_table, display_top_stocks
 # Expand Streamlit to full width
 st.set_page_config(layout="wide")
 
-# OpenAI API Key (Replace with your own key)
-OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
-openai.api_key = OPENAI_API_KEY
+# Load secrets from GitHub Actions or Streamlit environment variables
+if hasattr(st, "secrets"):
+    OPENAI_API_KEY =  st.secrets.get("OPENAI_API_KEY", None)
+    NEWS_API_KEY =  st.secrets.get("NEWS_API_KEY", None)
+else:
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
-NEWS_API_KEY = st.secrets["NEWS_API_KEY"]
+# Raise an error if the API key is missing
+if not OPENAI_API_KEY:
+    raise ValueError("❌ ERROR: API KEYS are missing! Set it in Streamlit Secrets or GitHub Actions.")
+
+openai.api_key = OPENAI_API_KEY
 NEWSAPI_LIMIT = 1000  # Adjust based on your NewsAPI plan
 
 # Define stock pools with more tickers

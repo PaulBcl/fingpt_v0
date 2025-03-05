@@ -2,12 +2,25 @@ import discord
 import openai
 import requests
 import os
+import streamlit as st
 
-# Load secrets from GitHub Actions environment variables
-BOT_TOKEN = os.getenv("bot_token")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-GITHUB_REPO = os.getenv("GITHUB_REPO")
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+# Load secrets from GitHub Actions or Streamlit environment variables
+if hasattr(st, "secrets"):
+    BOT_TOKEN =  st.secrets.get("bot_token", None)
+    OPENAI_API_KEY =  st.secrets.get("OPENAI_API_KEY", None)
+    GITHUB_REPO =  st.secrets.get("GITHUB_REPO", None)
+    GITHUB_TOKEN =  st.secrets.get("GITHUB_TOKEN", None)
+    NEWS_API_KEY =  st.secrets.get("NEWS_API_KEY", None)
+else:
+    BOT_TOKEN = os.getenv("bot_token")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    GITHUB_REPO = os.getenv("GITHUB_REPO")
+    GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+    NEWS_API_KEY = os.getenv("NEWS_API_KEY")
+
+# Raise an error if the API key is missing
+if not OPENAI_API_KEY:
+    raise ValueError("❌ ERROR: API KEYS are missing! Set it in Streamlit Secrets or GitHub Actions.")
 
 # GitHub API URL for modifying files
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/contents/"
