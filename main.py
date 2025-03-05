@@ -35,7 +35,7 @@ def fetch_stock_data_cached(stock_list):
 stock_data = fetch_stock_data_cached(ALL_STOCKS)
 
 # Compute stock scores
-top_stocks, valid_stock_count = compute_stock_scores(stock_data)
+top_stocks, valid_stock_count = compute_stock_scores(stock_data)[:3]
 
 # Calculate percentage of valid data
 valid_data_percentage = (valid_stock_count / len(ALL_STOCKS)) * 100 if len(ALL_STOCKS) > 0 else 0
