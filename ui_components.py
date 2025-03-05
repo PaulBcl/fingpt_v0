@@ -50,8 +50,8 @@ def display_top_stocks(top_stocks, stock_data, generate_ai_commentary):
     st.write("🔍 Debugging: top_stocks structure:", top_stocks)
 
     for stock_data_entry in top_stocks:
-        if len(stock_data_entry) != 6:
-            st.error(f"❌ Unexpected data format: {stock_data_entry} (expected 6 elements)")
+        if not isinstance(stock_data_entry, tuple) or len(stock_data_entry) != 6:
+            st.error(f"❌ Unexpected data format: {stock_data_entry} (expected tuple with 6 elements)")
             continue  # Skip incorrect entries
 
         stock, momentum, pe_score, debt_score, roe_score, overall = stock_data_entry
@@ -65,7 +65,7 @@ def display_top_stocks(top_stocks, stock_data, generate_ai_commentary):
         ai_comment = generate_ai_commentary(stock, financials, (momentum, pe_score, debt_score, roe_score))
 
         st.write(f"**{stock}**")
-        st.write(f"📊 Momentum: {momentum}, P/E: {pe_score}, Debt: {debt_score}, ROE: {roe_score}, Overall: {overall}")
+        st.write(f"📊 Momentum: {momentum:.2f}, P/E: {pe_score}, Debt: {debt_score}, ROE: {roe_score}, Overall: {overall:.2f}")
         st.write(f"🧠 AI Commentary: {ai_comment}")
 
 
