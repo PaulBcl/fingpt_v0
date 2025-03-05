@@ -16,7 +16,7 @@ def compute_stock_scores(stock_data):
         if data is None or len(data) < 20:
             continue
 
-        data['Volume'].fillna(0, inplace=True)
+        data.loc[:, 'Volume'] = data['Volume'].fillna(0)
         momentum_score = min(max((data['Close'].pct_change().iloc[-1] * 200), 0), 10)
         rsi = data['Close'].rolling(window=14).mean().iloc[-1]
         rsi_score = 10 if rsi < 30 else 4 if rsi < 50 else 0
