@@ -35,7 +35,39 @@ def display_top_stocks(top_stocks, stock_data, generate_ai_commentary):
         market_cap = f"${financials['market_cap']:,}" if financials.get("market_cap") else "N/A"
 
         # Sentiment (Mock Example – Can be improved with real sentiment analysis)
-        sentiment = "📈 Positive" if momentum > 0 else "📉 Negative"
+        def calculate_sentiment(momentum, rsi, news_sentiment):
+            """
+            Determine market sentiment based on multiple factors.
+
+            Parameters:
+            - momentum (float): Stock's momentum score.
+            - rsi (float): Relative Strength Index.
+            - news_sentiment (float): Sentiment score from financial news.
+
+            Returns:
+            - str: Emoji + Sentiment description.
+            """
+            if news_sentiment is None:
+                news_sentiment = 0  # Default if no data available
+
+            # Weight factors (adjust as needed)
+            momentum_weight = 0.4
+            rsi_weight = 0.3
+            news_weight = 0.3
+
+            # Normalize sentiment score between -1 and 1
+            total_sentiment_score = (momentum * momentum_weight) + ((50 - rsi) * rsi_weight / 50) + (news_sentiment * news_weight)
+
+            if total_sentiment_score > 0.2:
+                return "📈 Positive"
+            elif total_sentiment_score < -0.2:
+                return "📉 Negative"
+            else:
+                return "⚖️ Neutral"
+
+        news_sentiment = stock_data[stock].get("news_sentiment", 0)
+        sentiment = calculate_sentiment(momentum, financials["rsi"], news_sentiment)
+
 
         col1, col2, col3 = st.columns([3, 2, 2])
 

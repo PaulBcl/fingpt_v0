@@ -14,15 +14,14 @@ st.set_page_config(layout="wide")
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
 openai.api_key = OPENAI_API_KEY
 
+NEWS_API_KEY = st.secrets["NEWS_API_KEY"]
+NEWSAPI_LIMIT = 1000  # Adjust based on your NewsAPI plan
+
 # Define stock pools with more tickers
 FRANCE_STOCKS = ['ML.PA', 'ALSTOM.PA', 'DG.PA', 'PUB.PA', 'RNO.PA', 'ACA.PA', 'BN.PA', 'AI.PA', 'STM.PA', 'CAP.PA']
 ASIA_STOCKS = ['9984.T', '700.HK', '005930.KQ', 'RELIANCE.NS', 'BABA', 'TCEHY', 'JD', 'NTES', 'SE', 'SONY']
 US_STOCKS = ['NVDA', 'TSLA', 'PLTR', 'SOFI', 'COIN', 'AMD', 'RBLX', 'UPST', 'CRWD', 'FSLY', 'NET']
 ALL_STOCKS = FRANCE_STOCKS + ASIA_STOCKS + US_STOCKS
-
-# API Limit Configuration
-NEWSAPI_LIMIT = 1000  # Adjust based on your NewsAPI plan
-NEWSAPI_KEY = os.getenv('NEWSAPI_KEY', 'default_value')
 
 # Enable auto-refresh
 refresh_interval = st.sidebar.slider("Auto-refresh interval (minutes)", 1, 30, 30)
