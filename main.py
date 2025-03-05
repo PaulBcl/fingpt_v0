@@ -131,3 +131,7 @@ st.write(f"⏳ Data refreshes every {refresh_interval} minutes automatically. Yo
 # New additions from Discord
 st.sidebar.text('I love Deniz')
 #rest of the code...
+
+# New additions from Discord
+st.sidebar.markdown('# I love Deniz')
+# rest of the code...
