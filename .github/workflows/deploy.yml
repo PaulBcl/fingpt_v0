@@ -4,22 +4,12 @@ on:
   push:
     branches:
       - main
-  workflow_dispatch:
-
-concurrency:
-  group: deploy-streamlit
-  cancel-in-progress: true  # ✅ Cancels any previous run if a new one starts
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.12.0
-        with:
-          access_token: ${{ secrets.TOKEN_REPO }}
-
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -33,12 +23,8 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run Streamlit Application
-        env:
-          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
-          REPO_NAME: ${{ secrets.REPO_NAME }}
-          TOKEN_REPO: ${{ secrets.TOKEN_REPO }}
+      - name: Restart Streamlit Deployment
         run: |
-          streamlit run main.py --server.headless true || echo "Error detected" > error_log.txt
+          echo "🔄 Triggering Streamlit to update..."
+          git commit --allow-empty -m "Trigger Streamlit redeploy"
+          git push origin main
