@@ -5,6 +5,9 @@ import os
 import streamlit as st
 import base64
 import traceback
+import json
+import ast  # Safer than eval()
+
 
 # Detect if running in GitHub Actions
 RUNNING_IN_GITHUB = "GITHUB_ACTIONS" in os.environ
@@ -93,8 +96,22 @@ async def on_message(message):
             messages=[{"role": "user", "content": instruction}]
         )
 
-        # Convert response from OpenAI to JSON
-        updated_files = eval(response.choices[0].message.content)
+        response_content = response["choices"][0]["message"]["content"].strip()
+
+        try:
+            # Ensure OpenAI response is correctly formatted
+            if not response_content.startswith("{") or not response_content.endswith("}"):
+                raise ValueError("❌ ERROR: OpenAI response is not properly formatted as JSON.")
+
+            updated_files = ast.literal_eval(response_content)  # Safe alternative to eval()
+
+            if "files" not in updated_files:
+                raise ValueError("❌ ERROR: The response does not contain 'files' key.")
+
+        except Exception as e:
+            await message.channel.send(f"❌ Error processing request: {e}")
+            print(f"Unexpected Error: {e}")
+            return
 
         headers = {"Authorization": f"token {TOKEN_REPO}"}
 
