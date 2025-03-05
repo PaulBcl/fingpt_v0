@@ -107,8 +107,9 @@ def refresh_data():
     st.session_state.refresh_triggered = True
     st.experimental_rerun()
 
-if st.sidebar.button("🛠 Update Code from Chat"):
-    st.switch_page("github_update.py")  # ✅ This opens the GitHub update system
+if st.sidebar.button("🚀 Apply Code Update from Chat"):
+    st.switch_page("github_updater.py")
+
 
 st.write("### AI Stock Picker - Live Updates Enabled")
 st.write("Stock picks based on momentum, volume, sentiment, and trend alerts.")
