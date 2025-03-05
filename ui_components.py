@@ -4,6 +4,40 @@ import plotly.express as px
 import plotly.graph_objects as go
 import plotly.subplots as sp
 
+def create_stock_recommendation_table(top_stocks, stock_data, generate_ai_commentary):
+    """
+    Create a compact and visual stock recommendation table.
+
+    Parameters:
+    top_stocks (list): A list of top stock tuples.
+    stock_data (dict): A dictionary containing stock data.
+    generate_ai_commentary (function): A function to generate AI commentary.
+    """
+    st.subheader("📈 Stock Recommendations")
+
+    if not top_stocks:
+        st.warning("No stocks available for recommendation.")
+        return
+
+    # Creating DataFrame for better visualization
+    table_data = []
+    for stock, momentum, pe_score, debt_score, roe_score, overall in top_stocks:
+        table_data.append({
+            "Stock": stock,
+            "Momentum Score": f"{momentum:.2f}%" if momentum else "N/A",
+            "P/E Score": round(pe_score, 2),
+            "Debt Score": round(debt_score, 2),
+            "ROE Score": f"{roe_score:.2f}%" if roe_score else "N/A",
+            "Overall Score": round(overall, 2),
+            "AI Commentary": generate_ai_commentary(stock, stock_data[stock]["financials"],
+                                                    (momentum, pe_score, debt_score, roe_score))
+        })
+
+    df = pd.DataFrame(table_data)
+
+    # Use Streamlit's table display for better formatting
+    st.dataframe(df, use_container_width=True, hide_index=True)
+
 def create_comprehensive_stock_view(top_stocks, stock_data, generate_ai_commentary):
     """
     Create a comprehensive, compact view of top stock picks with multiple visualizations.
