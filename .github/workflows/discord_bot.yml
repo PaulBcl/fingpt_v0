@@ -26,7 +26,7 @@ jobs:
 
       - name: Run Discord Bot
         env:
-          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_BOT_TOKEN: ${{ secrets.bot_token }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_REPO: ${{ secrets.GITHUB_REPO }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
