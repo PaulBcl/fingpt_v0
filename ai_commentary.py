@@ -23,7 +23,9 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
         openai.api_key = OPENAI_API_KEY
 
         # Use the correct method for GPT-4 with the new OpenAI library
-        response = openai.ChatCompletion.create(  # Corrected method for chat models
+        client = openai.OpenAI(api_key=OPENAI_API_KEY)
+        response = client.chat.completions.create(
+
             model="gpt-4",  # Use GPT-4 for the analysis
             messages=[
                 {"role": "system", "content": "You are a financial analyst providing stock investment insights."},
