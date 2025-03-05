@@ -46,9 +46,6 @@ def display_top_stocks(top_stocks, stock_data, generate_ai_commentary):
         st.warning("No top stocks available.")
         return
 
-    # Debugging: Check if `top_stocks` structure is as expected
-    st.write("🔍 Debugging: top_stocks structure:", top_stocks)
-
     for stock_data_entry in top_stocks:
         if not isinstance(stock_data_entry, tuple) or len(stock_data_entry) != 6:
             st.error(f"❌ Unexpected data format: {stock_data_entry} (expected tuple with 6 elements)")
