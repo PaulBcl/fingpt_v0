@@ -4,27 +4,13 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'main.py'
-      - 'data_fetching.py'
-      - 'ui_components.py'
-      - 'requirements.txt'
-      - 'discord_bot.py'
-  workflow_run:
-    workflows: ["Run Discord Bot"]
-    types:
-      - completed
+  workflow_dispatch:
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.12.0
-        with:
-          access_token: ${{ secrets.TOKEN_REPO }}
-
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -38,7 +24,7 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Check for errors before deployment
+      - name: Run Streamlit Application
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.bot_token }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
@@ -46,16 +32,4 @@ jobs:
           REPO_NAME: ${{ secrets.REPO_NAME }}
           TOKEN_REPO: ${{ secrets.TOKEN_REPO }}
         run: |
-          python main.py || echo "Error detected" > error_log.txt
-
-      - name: Commit & Push Changes if Updated
-        run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          git add .
-          git commit -m "Auto-update from Discord command" || echo "No changes to commit"
-          git push origin main || echo "No changes to push"
-
-      - name: Notify Deployment Success
-        if: success()
-        run: echo "✅ Deployment to Streamlit production triggered!"
+          streamlit run main.py --server.headless true || echo "Error detected" > error_log.txt
