@@ -6,11 +6,20 @@ on:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: deploy-streamlit
+  cancel-in-progress: true  # ✅ Cancels any previous run if a new one starts
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.12.0
+        with:
+          access_token: ${{ secrets.TOKEN_REPO }}
+
       - name: Checkout repository
         uses: actions/checkout@v3
 
