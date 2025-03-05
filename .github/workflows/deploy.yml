@@ -11,40 +11,25 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
       - name: Install dependencies
         run: |
-          set -e  # Exit if any command fails
-          pip install --upgrade pip
-          pip install -r requirements.txt || { echo "❌ Failed to install dependencies"; exit 1; }
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install streamlit
 
-      - name: Configure Git Identity
-        run: |
-          git config --global user.email "actions@github.com"
-          git config --global user.name "GitHub Actions"
-
-      - name: Debug GitHub Actions Token
-        run: |
-          echo "🔍 Checking if GitHub Actions has proper permissions..."
-          echo "🔑 Current Token (First 8 Chars): ${TOKEN_REPO:0:8}"
-          curl -H "Authorization: token ${TOKEN_REPO}" \
-               -H "Accept: application/vnd.github.v3+json" \
-               https://api.github.com/repos/${{ github.repository }}
-
-
-      - name: Restart Streamlit Deployment
+      - name: Trigger Streamlit Redeployment
         env:
-          TOKEN_REPO: ${{ secrets.TOKEN_REPO }}
+          STREAMLIT_APP_NAME: ${{ secrets.STREAMLIT_APP_NAME }}
         run: |
-          set -e  # Exit if any command fails
-          echo "🔄 Triggering Streamlit to update..."
-          git remote set-url origin https://oauth2:${TOKEN_REPO}@github.com/${{ github.repository }}.git
-          git pull origin main || { echo "❌ Failed to pull latest changes"; exit 1; }
-          git commit --allow-empty -m "Trigger Streamlit redeploy" || { echo "❌ Failed to create empty commit"; exit 1; }
-          git push origin main || { echo "❌ Failed to push changes to GitHub"; exit 1; }
+          echo "🚀 Triggering Streamlit redeployment..."
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -d "{\"app_name\": \"$STREAMLIT_APP_NAME\"}" \
+            https://sharing.streamlit.io/api/v1/deploy || { echo "❌ Failed to trigger Streamlit deployment"; exit 1; }
