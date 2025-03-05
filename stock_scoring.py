@@ -36,4 +36,4 @@ def compute_stock_scores(stock_data):
         scores.append((stock, momentum_score, pe_score, debt_score, roe_score, overall_score))
 
     scores = sorted(scores, key=lambda x: x[-1], reverse=True)
-    return scores[:3]
+    return scores, len(scores)  # ✅ Ensure exactly 2 values are returned
