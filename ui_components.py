@@ -14,9 +14,10 @@ def create_stock_recommendation_table(data):
     df = df.round(2)
     st.dataframe(df)
 
+
 def display_top_stocks(top_stocks, stock_data, generate_ai_commentary):
     """
-    Display the top 3 stocks with AI commentary.
+    Display only the top 3 stocks with AI commentary.
 
     Parameters:
     top_stocks (list): A list of top stock tuples.
@@ -24,10 +25,10 @@ def display_top_stocks(top_stocks, stock_data, generate_ai_commentary):
     generate_ai_commentary (function): A function to generate AI commentary.
     """
 
-    ### ✅ **NEW: High-Level Overview Instead of a Basic Table**
+    ### ✅ **Step 1: Show a High-Level Overview of ONLY the Top 3**
     st.subheader("🏆 Top 3 Stock Picks Overview")
 
-    for stock, momentum, pe_score, debt_score, roe_score, overall in top_stocks:
+    for i, (stock, momentum, pe_score, debt_score, roe_score, overall) in enumerate(top_stocks[:3]):  # ✅ Ensuring only Top 3
         financials = stock_data[stock]["financials"]
         sector = financials.get("sector", "Unknown Sector")
         industry = financials.get("industry", "Unknown Industry")
@@ -50,10 +51,10 @@ def display_top_stocks(top_stocks, stock_data, generate_ai_commentary):
         with col3:
             st.write(f"**Momentum:** {'📈' if momentum > 0 else '📉'} {round(momentum, 2)}%")
 
-    ### ✅ **Existing Detailed Analysis**
+    ### ✅ **Step 2: Show Detailed Analysis for ONLY the Top 3**
     st.subheader("🏆 Top 3 Stock Picks - Detailed Analysis")
 
-    for stock, momentum, pe_score, debt_score, roe_score, overall in top_stocks:
+    for i, (stock, momentum, pe_score, debt_score, roe_score, overall) in enumerate(top_stocks[:3]):  # ✅ Again, Only Top 3
         financials = stock_data[stock]["financials"]
         ai_comment = generate_ai_commentary(stock, financials, (momentum, pe_score, debt_score, roe_score))
 

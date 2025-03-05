@@ -7,9 +7,6 @@ OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]  # Correct way to access the key b
 openai.api_key = OPENAI_API_KEY
 
 # Function to generate AI-powered stock commentary (GPT-4 Chat Model)
-
-import hashlib
-
 def generate_ai_commentary(stock, financials, scores):
     prompt = (f"Stock: {stock}\n"
               f"- Sector: {financials['sector']}, Industry: {financials['industry']}\n"
