@@ -7,6 +7,7 @@ import base64
 import traceback
 import json
 import ast  # Safer than eval()
+import difflib
 
 # Detect if running in GitHub Actions
 RUNNING_IN_GITHUB = "GITHUB_ACTIONS" in os.environ
@@ -27,14 +28,6 @@ else:
     TOKEN_REPO = os.getenv("TOKEN_REPO")
     NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
-# Debugging: Print secrets before raising an error
-print(f"🔍 Debugging Secrets in Python:")
-print(f"DISCORD_BOT_TOKEN: {'✅ Loaded' if DISCORD_BOT_TOKEN else '❌ MISSING'}")
-print(f"OPENAI_API_KEY: {'✅ Loaded' if OPENAI_API_KEY else '❌ MISSING'}")
-print(f"REPO_NAME: {'✅ Loaded' if REPO_NAME else '❌ MISSING'}")
-print(f"TOKEN_REPO: {'✅ Loaded' if TOKEN_REPO else '❌ MISSING'}")
-print(f"NEWS_API_KEY: {'✅ Loaded' if NEWS_API_KEY else '❌ MISSING'}")
-
 # Raise an error if critical API keys are missing
 if not DISCORD_BOT_TOKEN or not OPENAI_API_KEY or not REPO_NAME or not TOKEN_REPO:
     raise ValueError("❌ ERROR: One or more API keys are missing! Ensure they are set in Streamlit Secrets or GitHub Actions.")
@@ -54,6 +47,34 @@ intents.message_content = True  # ✅ Required for reading messages
 
 # Define Discord client
 client = discord.Client(intents=intents)
+
+def smart_merge_content(original_content, new_content):
+    """
+    Intelligently merge new content with existing content.
+    Tries to add or modify specific parts without completely replacing the file.
+    """
+    # If the file is completely empty or very short, just return new content
+    if not original_content or len(original_content.split('\n')) < 5:
+        return new_content
+
+    # Use difflib to find the best merge strategy
+    differ = difflib.Differ()
+    diff = list(differ.compare(original_content.splitlines(), new_content.splitlines()))
+
+    # Try to identify meaningful changes
+    added_lines = [line[2:] for line in diff if line.startswith('+ ')]
+    removed_lines = [line[2:] for line in diff if line.startswith('- ')]
+
+    # If changes are minimal, append or insert strategically
+    if len(added_lines) < 5:
+        # Append new lines at the end or insert before a specific section
+        if 'if __name__ == "__main__":' in original_content:
+            split_content = original_content.split('if __name__ == "__main__":')
+            return split_content[0] + '\n'.join(added_lines) + '\n\nif __name__ == "__main__":' + split_content[1]
+        else:
+            return original_content + '\n\n# New additions from Discord\n' + '\n'.join(added_lines)
+
+    return new_content
 
 @client.event
 async def on_ready():
@@ -114,12 +135,20 @@ async def on_message(message):
         headers = {"Authorization": f"token {TOKEN_REPO}"}
 
         for file_path, new_content in updated_files["files"].items():
-            # Fetch the current file's SHA (GitHub requires this for updates)
-            file_info = requests.get(GITHUB_API_URL + file_path, headers=headers).json()
-            file_sha = file_info.get("sha", None)
+            # Fetch the current file's content and SHA
+            try:
+                file_info = requests.get(GITHUB_API_URL + file_path, headers=headers).json()
+                current_content = base64.b64decode(file_info.get('content', '')).decode('utf-8')
+                file_sha = file_info.get("sha", None)
+            except Exception as e:
+                current_content = ""
+                file_sha = None
+
+            # Smart merge of content
+            merged_content = smart_merge_content(current_content, new_content)
 
             # Encode content to Base64
-            encoded_content = base64.b64encode(new_content.encode("utf-8")).decode("utf-8")
+            encoded_content = base64.b64encode(merged_content.encode("utf-8")).decode("utf-8")
 
             # Prepare the update payload
             update_data = {
@@ -130,10 +159,20 @@ async def on_message(message):
 
             response = requests.put(GITHUB_API_URL + file_path, json=update_data, headers=headers)
 
-            if response.status_code == 200:
+            if response.status_code in [200, 201]:
                 await message.channel.send(f"✅ {file_path} updated successfully in GitHub!")
+                # Optional: Show diff or changes
+                diff = '\n'.join(difflib.unified_diff(
+                    current_content.splitlines(),
+                    merged_content.splitlines(),
+                    fromfile='original',
+                    tofile='updated'
+                ))
+                if diff:
+                    await message.channel.send(f"Changes:\n```diff\n{diff[:1900]}{'...' if len(diff) > 1900 else ''}```")
             else:
                 await message.channel.send(f"❌ Failed to update {file_path}. Check logs.")
+                print(f"GitHub API Response: {response.text}")
 
     except Exception as e:
         error_trace = traceback.format_exc()
