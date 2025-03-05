@@ -13,6 +13,8 @@ def create_stock_recommendation_table(data):
     df = df.round(2)
     st.dataframe(df)
 
+import plotly.graph_objects as go
+
 def display_top_stocks(top_stocks, stock_data, generate_ai_commentary):
     """
     Display the top stocks with AI commentary.
@@ -22,18 +24,25 @@ def display_top_stocks(top_stocks, stock_data, generate_ai_commentary):
     stock_data (dict): A dictionary containing stock data.
     generate_ai_commentary (function): A function to generate AI commentary.
     """
-    st.subheader("🏆 Top 3 Stock Picks Overall")
-    create_stock_recommendation_table(top_stocks)
+    st.subheader("🏆 Top 3 Stock Picks - Detailed Analysis")
 
-    st.subheader("💡 AI-Powered Investment Insights")
-    for stock, momentum, rsi, volume, overall in top_stocks:
-        ai_comment = generate_ai_commentary(stock, momentum, rsi, volume, overall)
-        st.write(f"📊 **{stock} Analysis:**")
+    for stock, momentum, pe_score, debt_score, roe_score, overall in top_stocks:
+        financials = stock_data[stock]["financials"]
+        ai_comment = generate_ai_commentary(stock, financials, (momentum, pe_score, debt_score, roe_score))
+
+        # Display stock table
         stock_df = pd.DataFrame({
-            "Indicator": ["Momentum %", "RSI", "Volume"],
-            "Value": [momentum, rsi, volume]
+            "Metric": ["Momentum %", "P/E Ratio", "Debt/Equity", "Return on Equity", "Overall Score"],
+            "Value": [momentum, financials["pe_ratio"], financials["debt_equity"], financials["return_on_equity"], overall]
         })
         st.table(stock_df)
-        st.write(f"💬 **AI Insight:** {ai_comment}")
-        fig = px.line(stock_data[stock], x=stock_data[stock].index, y=["Close", "Volume"], title=f"{stock} Price & Volume (Last 10 Weeks)")
+
+        # Plot stock price
+        data = stock_data[stock]["price_data"]
+        fig = go.Figure()
+        fig.add_trace(go.Scatter(x=data.index, y=data["Close"], mode="lines", name="Stock Price"))
+        fig.add_trace(go.Bar(x=data.index, y=data["Volume"], name="Volume", marker_color="lightgray"))
+        fig.update_layout(title=f"{stock} - Price & Volume", xaxis_title="Date", yaxis_title="Value")
         st.plotly_chart(fig)
+
+        st.write(f"💬 **AI Analysis:** {ai_comment}")

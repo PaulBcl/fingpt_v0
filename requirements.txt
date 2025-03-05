@@ -4,3 +4,4 @@ openai
 pandas
 plotly
 requests
+hashlib
