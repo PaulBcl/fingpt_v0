@@ -1,6 +1,7 @@
 import yfinance as yf
 import requests
 import textblob
+import streamlit as st
 
 def fetch_stock_data(stock_list):
     """
