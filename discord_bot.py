@@ -42,10 +42,12 @@ print("✅ All secrets loaded successfully. Starting bot...")
 # Initialize OpenAI API
 client_openai = openai.OpenAI(api_key=OPENAI_API_KEY)
 
-# Define Discord client
+# ✅ Use explicit privileged intents
 intents = discord.Intents.default()
 intents.messages = True
-intents.message_content = True  # ✅ Ensure bot can read messages
+intents.message_content = True  # ✅ Required for reading messages
+
+# Define Discord client
 client = discord.Client(intents=intents)
 
 @client.event

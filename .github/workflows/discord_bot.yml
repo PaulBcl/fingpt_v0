@@ -33,15 +33,6 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Debug Secrets
-        run: |
-          echo "🔍 Checking if secrets are available..."
-          echo "DISCORD_BOT_TOKEN=${{ secrets.DISCORD_BOT_TOKEN }}" | sed 's/./& /g'
-          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" | sed 's/./& /g'
-          echo "NEWS_API_KEY=${{ secrets.NEWS_API_KEY }}" | sed 's/./& /g'
-          echo "REPO_NAME=${{ secrets.REPO_NAME }}" | sed 's/./& /g'
-          echo "TOKEN_REPO=${{ secrets.TOKEN_REPO }}" | sed 's/./& /g'
-
       - name: Run Discord Bot
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
