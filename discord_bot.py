@@ -13,23 +13,23 @@ if not RUNNING_IN_GITHUB and hasattr(st, "secrets"):
     print("✅ Running in Streamlit, using st.secrets")
     BOT_TOKEN = st.secrets.get("DISCORD_BOT_TOKEN", None)
     OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY", None)
-    GITHUB_REPO = st.secrets.get("GITHUB_REPO", None)
-    GITHUB_TOKEN = st.secrets.get("GITHUB_TOKEN", None)
+    REPO_NAME = st.secrets.get("REPO_NAME", None)
+    TOKEN_REPO = st.secrets.get("TOKEN_REPO", None)
     NEWS_API_KEY = st.secrets.get("NEWS_API_KEY", None)
 else:
     print("✅ Running in GitHub Actions, using os.environ")
     BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-    GITHUB_REPO = os.getenv("GITHUB_REPO")
-    GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+    REPO_NAME = os.getenv("REPO_NAME")
+    TOKEN_REPO = os.getenv("TOKEN_REPO")
     NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
 # Raise an error if critical API keys are missing
-if not BOT_TOKEN or not OPENAI_API_KEY or not GITHUB_REPO or not GITHUB_TOKEN:
+if not BOT_TOKEN or not OPENAI_API_KEY or not REPO_NAME or not TOKEN_REPO:
     raise ValueError("❌ ERROR: One or more API keys are missing! Ensure they are set in Streamlit Secrets or GitHub Actions.")
 
 # GitHub API URL for modifying files
-GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_REPO}/contents/"
+GITHUB_API_URL = f"https://api.github.com/repos/{REPO_NAME}/contents/"
 
 # Initialize OpenAI API
 openai.api_key = OPENAI_API_KEY
@@ -68,7 +68,7 @@ async def on_message(message):
         )
         updated_files = eval(response["choices"][0]["message"]["content"])  # Convert JSON response
 
-        headers = {"Authorization": f"token {GITHUB_TOKEN}"}
+        headers = {"Authorization": f"token {TOKEN_REPO}"}
 
         for file_path, new_content in updated_files["files"].items():
             # Fetch the current file's SHA (GitHub requires this for updates)
