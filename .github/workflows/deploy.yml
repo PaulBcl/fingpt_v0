@@ -1,0 +1,39 @@
+name: Deploy to Streamlit
+
+on:
+  push:
+    branches:
+      - main  # Triggers deployment when changes are pushed to the main branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run the application and check for errors
+        run: |
+          python main.py || echo "Error detected" > error_log.txt
+
+      - name: Deploy to Streamlit
+        run: |
+          git fetch
+          if [ -f error_log.txt ]; then
+            echo "Deployment failed due to errors, skipping Streamlit update."
+            exit 1
+          else
+            echo "Running Streamlit App"
+            streamlit run main.py
+          fi

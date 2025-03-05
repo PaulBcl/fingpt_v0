@@ -30,7 +30,7 @@ def generate_ai_commentary(stock, financials, scores):
                 {"role": "system", "content": "You are a financial analyst providing detailed stock recommendations."},
                 {"role": "user", "content": prompt}
             ],
-            max_tokens=100,
+            max_tokens=200,
             temperature=0.3,
         )
 
