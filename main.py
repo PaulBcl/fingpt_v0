@@ -6,6 +6,7 @@ from data_fetching import fetch_stock_data
 from stock_scoring import compute_stock_scores
 from ai_commentary import generate_ai_commentary
 from ui_components import create_stock_recommendation_table, display_top_stocks
+import yfinance as yf
 
 # Expand Streamlit to full width
 st.set_page_config(layout="wide")
@@ -21,10 +22,6 @@ else:
 # Ensure the API key is available
 if not OPENAI_API_KEY:
     raise ValueError("❌ ERROR: OPENAI_API_KEY is missing! Set it in Streamlit Secrets or GitHub Actions.")
-
-
-
-
 
 openai.api_key = OPENAI_API_KEY
 NEWSAPI_LIMIT = 1000  # Adjust based on your NewsAPI plan
@@ -46,7 +43,9 @@ def fetch_stock_data_cached(stock_list):
 stock_data = fetch_stock_data_cached(ALL_STOCKS)
 
 # Compute stock scores
-top_stocks, valid_stock_count = compute_stock_scores(stock_data)[:3]
+computed_scores = compute_stock_scores(stock_data)
+top_stocks = computed_scores[:3] if computed_scores else []
+valid_stock_count = len(computed_scores)
 
 # Calculate percentage of valid data
 valid_data_percentage = (valid_stock_count / len(ALL_STOCKS)) * 100 if len(ALL_STOCKS) > 0 else 0
@@ -60,7 +59,10 @@ with st.sidebar.expander("⚠️ Data Warnings & Stats", expanded=False):
         st.write("✅ All tickers have sufficient data for analysis.")
 
 # Display top 3 stocks with AI commentary
-display_top_stocks(top_stocks, stock_data, generate_ai_commentary)
+if top_stocks:
+    display_top_stocks(top_stocks, stock_data, generate_ai_commentary)
+else:
+    st.write("🚨 No valid stocks available for ranking. Check data sources.")
 
 # Test APIs
 def test_apis():
@@ -93,7 +95,7 @@ def test_apis():
 
     # Test NewsAPI
     try:
-        news_response = requests.get(f'https://newsapi.org/v2/top-headlines?country=us&apiKey={NEWSAPI_KEY}')
+        news_response = requests.get(f'https://newsapi.org/v2/top-headlines?country=us&apiKey={NEWS_API_KEY}')
         if news_response.status_code == 200:
             api_results['NewsAPI'] = "Working"
         else:
@@ -121,7 +123,6 @@ def refresh_data():
 
 if st.sidebar.button("🚀 Apply Code Update from Chat"):
     st.switch_page("github_updater.py")
-
 
 st.write("### AI Stock Picker - Live Updates Enabled")
 st.write("Stock picks based on momentum, volume, sentiment, and trend alerts.")
