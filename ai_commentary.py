@@ -4,14 +4,13 @@ import hashlib
 import os
 
 # Access OpenAI API key from secrets
-
 # Check if running in Streamlit (st.secrets exists)
-if hasattr(st, "secrets"):
+if hasattr(st, "secrets") and "GITHUB_ACTIONS" not in os.environ:
     OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY", None)
 else:
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Raise an error if the API key is missing
+# Ensure the API key is available
 if not OPENAI_API_KEY:
     raise ValueError("❌ ERROR: OPENAI_API_KEY is missing! Set it in Streamlit Secrets or GitHub Actions.")
 

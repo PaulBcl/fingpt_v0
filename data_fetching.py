@@ -4,18 +4,15 @@ import textblob
 import streamlit as st
 import os
 
-NEWS_API_KEY = os.getenv("NEWS_API_KEY")  # Correct way to access the key based on your secret name
-
 # Check if running in Streamlit (st.secrets exists)
-if hasattr(st, "secrets"):
+if hasattr(st, "secrets") and "GITHUB_ACTIONS" not in os.environ:
     NEWS_API_KEY = st.secrets.get("NEWS_API_KEY", None)
 else:
     NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
-# Raise an error if the API key is missing
+# Ensure the API key is available
 if not NEWS_API_KEY:
     raise ValueError("❌ ERROR: NEWS_API_KEY is missing! Set it in Streamlit Secrets or GitHub Actions.")
-
 
 def fetch_stock_data(stock_list):
     """

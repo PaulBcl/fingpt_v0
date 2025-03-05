@@ -3,7 +3,7 @@ import openai
 import requests
 import os
 import streamlit as st
-import base64 
+import base64
 
 # Detect if running in GitHub Actions
 RUNNING_IN_GITHUB = "GITHUB_ACTIONS" in os.environ
