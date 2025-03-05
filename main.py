@@ -102,6 +102,8 @@ def compute_stock_scores(stock_data):
     return scores[:3], valid_stock_count
 
 # Generate AI-based commentary
+import openai
+
 def generate_ai_commentary(stock, momentum, rsi, volume, overall):
     prompt = (f"Analyze the stock {stock} based on the following indicators:\n"
               f"- Momentum: {momentum}%\n"
@@ -112,15 +114,23 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
     try:
         if not OPENAI_API_KEY:
             return "AI analysis unavailable: OpenAI API key is missing."
+
         openai.api_key = OPENAI_API_KEY
-        response = openai.Completion.create(
-            model="text-davinci-003",  # You can change this to any other model you'd like
-            prompt=prompt,
-            max_tokens=50
+
+        # Using the new ChatCompletion API to generate responses
+        response = openai.ChatCompletion.create(
+            model="gpt-4",  # You can choose any model you prefer
+            messages=[
+                {"role": "system", "content": "You are a financial analyst providing stock investment insights."},
+                {"role": "user", "content": prompt}
+            ]
         )
-        return response.choices[0].text.strip()
+
+        return response['choices'][0]['message']['content'].strip()
+
     except Exception as e:
         return f"AI analysis unavailable: {str(e)}"
+
 
 # Display top 3 stocks and their AI commentary
 top_stocks, valid_stock_count = compute_stock_scores(stock_data)

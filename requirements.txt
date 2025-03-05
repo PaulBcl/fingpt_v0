@@ -4,5 +4,5 @@ requests
 pandas
 textblob
 plotly
-openai
+openai>=1.0.0
 ta
