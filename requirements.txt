@@ -1,7 +1,8 @@
 streamlit
 yfinance
-openai
-pandas
-plotly
 requests
-hashlib
+pandas
+textblob
+plotly
+openai
+numpy
