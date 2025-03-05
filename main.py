@@ -61,7 +61,7 @@ def test_apis():
             api_results['OpenAI'] = "Error: API Key missing"
         else:
             openai.api_key = OPENAI_API_KEY
-            openai.chat_completions.create(
+            openai.ChatCompletion.create(
                 model="gpt-4",
                 messages=[
                     {"role": "system", "content": "Test API functionality."},
