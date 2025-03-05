@@ -1,10 +1,10 @@
-streamlit
-yfinance
-requests
-pandas
-textblob
-plotly
-openai
-numpy
-gitpython
-discord
+streamlit==1.43.0
+yfinance==0.2.54
+requests==2.31.0  # Downgraded for compatibility
+pandas==1.5.3  # More stable for Python 3.10
+textblob==0.17.1  # Older, more stable version
+plotly==5.19.0  # Works with Python 3.10
+openai==1.65.3
+numpy==1.26.4
+discord==2.3.2
+gitpython==3.1.43
