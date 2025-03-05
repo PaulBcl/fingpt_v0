@@ -26,15 +26,30 @@ def generate_ai_commentary(stock, financials, scores):
     Returns:
         str: AI-generated stock analysis
     """
-    # Prepare a more structured, nuanced prompt
+    # Handle missing financial data safely
+    sector = financials.get("sector", "Unknown Sector")
+    market_cap = financials.get("market_cap", 0)
+    pe_ratio = financials.get("pe_ratio", "N/A")
+    debt_equity = financials.get("debt_equity", "N/A")
+    return_on_equity = financials.get("return_on_equity", "N/A")
+    profit_margin = financials.get("profit_margin", "N/A")
+
+    # Ensure values are formatted correctly
+    market_cap_str = f"${market_cap:,}" if isinstance(market_cap, (int, float)) else "N/A"
+    pe_ratio_str = f"{pe_ratio:.2f}" if isinstance(pe_ratio, (int, float)) else "N/A"
+    debt_equity_str = f"{debt_equity:.2f}" if isinstance(debt_equity, (int, float)) else "N/A"
+    roe_str = f"{return_on_equity:.2f}%" if isinstance(return_on_equity, (int, float)) else "N/A"
+    profit_margin_str = f"{profit_margin:.2f}%" if isinstance(profit_margin, (int, float)) else "N/A"
+
+    # Construct structured prompt
     prompt = (f"Provide a crisp, professional stock analysis for {stock}:\n"
               f"Financial Context:\n"
-              f"• Sector: {financials['sector']}\n"
-              f"• Market Cap: ${financials['market_cap']:,}\n"
-              f"• P/E Ratio: {financials['pe_ratio']:.2f}\n"
-              f"• Debt/Equity: {financials['debt_equity']:.2f}\n"
-              f"• ROE: {financials['return_on_equity']:.2f}%\n"
-              f"• Profit Margin: {financials['profit_margin']:.2f}%\n\n"
+              f"• Sector: {sector}\n"
+              f"• Market Cap: {market_cap_str}\n"
+              f"• P/E Ratio: {pe_ratio_str}\n"
+              f"• Debt/Equity: {debt_equity_str}\n"
+              f"• ROE: {roe_str}\n"
+              f"• Profit Margin: {profit_margin_str}\n\n"
               f"Performance Scores (0-10):\n"
               f"• Momentum: {scores[0]}/10\n"
               f"• P/E Valuation: {scores[1]}/10\n"
