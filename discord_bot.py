@@ -12,14 +12,14 @@ RUNNING_IN_GITHUB = "GITHUB_ACTIONS" in os.environ
 # Load secrets from GitHub Actions or Streamlit
 if not RUNNING_IN_GITHUB and hasattr(st, "secrets"):
     print("✅ Running in Streamlit, using st.secrets")
-    BOT_TOKEN = st.secrets.get("DISCORD_BOT_TOKEN", None)
+    BOT_TOKEN = st.secrets.get("bot_token", None)
     OPENAI_API_KEY = st.secrets.get("OPENAI_API_KEY", None)
     REPO_NAME = st.secrets.get("REPO_NAME", None)
     TOKEN_REPO = st.secrets.get("TOKEN_REPO", None)
     NEWS_API_KEY = st.secrets.get("NEWS_API_KEY", None)
 else:
     print("✅ Running in GitHub Actions, using os.environ")
-    BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+    BOT_TOKEN = os.getenv("bot_token")
     OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
     REPO_NAME = os.getenv("REPO_NAME")
     TOKEN_REPO = os.getenv("TOKEN_REPO")
@@ -33,9 +33,9 @@ if not BOT_TOKEN or not OPENAI_API_KEY or not REPO_NAME or not TOKEN_REPO:
 GITHUB_API_URL = f"https://api.github.com/repos/{REPO_NAME}/contents/"
 
 # Initialize OpenAI API
-openai.api_key = OPENAI_API_KEY
+client_openai = openai.OpenAI(api_key=OPENAI_API_KEY)
 
-# Set up Discord bot
+# ✅ FIX: Define the Discord client before using it
 intents = discord.Intents.default()
 intents.messages = True
 client = discord.Client(intents=intents)
@@ -46,7 +46,7 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    if message.author == client.user:
+    if message.author == client.user:  # ✅ No more unbound error
         return
 
     prompt = message.content.strip()
@@ -63,17 +63,13 @@ async def on_message(message):
     """
 
     try:
-        # OpenAI API call
-        client = openai.OpenAI(api_key=OPENAI_API_KEY)
-
-        response = client.chat.completions.create(
+        response = client_openai.chat.completions.create(
             model="gpt-4",
             messages=[{"role": "user", "content": instruction}]
         )
-
         print(f"📝 OpenAI Response: {response}")
 
-        updated_files = eval(response["choices"][0]["message"]["content"])  # Convert JSON response
+        updated_files = eval(response.choices[0].message.content)  # Convert JSON response
         headers = {"Authorization": f"token {TOKEN_REPO}"}
 
         for file_path, new_content in updated_files["files"].items():
@@ -111,4 +107,4 @@ async def on_message(message):
 
 # Run the bot
 print("🚀 Starting Discord bot...")
-client.run(BOT_TOKEN)
+client.run(BOT_TOKEN)  # ✅ Ensures `client` is properly defined
