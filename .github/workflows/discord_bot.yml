@@ -36,7 +36,7 @@ jobs:
       - name: Debug Secrets
         run: |
           echo "🔍 Checking if secrets are available..."
-          echo "DISCORD_BOT_TOKEN=${{ secrets.bot_token }}" | sed 's/./& /g'
+          echo "DISCORD_BOT_TOKEN=${{ secrets.DISCORD_BOT_TOKEN }}" | sed 's/./& /g'
           echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" | sed 's/./& /g'
           echo "NEWS_API_KEY=${{ secrets.NEWS_API_KEY }}" | sed 's/./& /g'
           echo "REPO_NAME=${{ secrets.REPO_NAME }}" | sed 's/./& /g'
@@ -44,7 +44,7 @@ jobs:
 
       - name: Run Discord Bot
         env:
-          DISCORD_BOT_TOKEN: ${{ secrets.bot_token }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
           REPO_NAME: ${{ secrets.REPO_NAME }}
