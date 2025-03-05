@@ -13,10 +13,10 @@ jobs:
       - name: Cancel previous bot runs
         uses: styfle/cancel-workflow-action@0.12.0
         with:
-          access_token: ${{ secrets.TOKEN_REPO }}  # ✅ Only GitHub API access needed here
+          access_token: ${{ secrets.TOKEN_REPO }}
 
   run-bot:
-    needs: cancel-previous  # ✅ Ensures old bot stops before new one starts
+    needs: cancel-previous
     runs-on: ubuntu-latest
 
     steps:
@@ -37,8 +37,18 @@ jobs:
         env:
           DISCORD_BOT_TOKEN: ${{ secrets.bot_token }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
           REPO_NAME: ${{ secrets.REPO_NAME }}
           TOKEN_REPO: ${{ secrets.TOKEN_REPO }}
-          NEWS_API_KEY: ${{ secrets.NEWS_API_KEY }}
         run: |
+          # Debugging: Check if all secrets are set
+          if [ -z "$DISCORD_BOT_TOKEN" ] || [ -z "$OPENAI_API_KEY" ] || [ -z "$REPO_NAME" ] || [ -z "$TOKEN_REPO" ]; then
+            echo "❌ ERROR: One or more required secrets are missing!"
+            echo "DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN:-MISSING}"
+            echo "OPENAI_API_KEY=${OPENAI_API_KEY:-MISSING}"
+            echo "REPO_NAME=${REPO_NAME:-MISSING}"
+            echo "TOKEN_REPO=${TOKEN_REPO:-MISSING}"
+            exit 1
+          fi
+
           while true; do python discord_bot.py; sleep 10; done
