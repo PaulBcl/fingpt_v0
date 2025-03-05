@@ -1,6 +1,11 @@
 import openai
+import streamlit as st
 
-import openai
+# Access OpenAI API key from secrets
+OPENAI_API_KEY = st.secrets["openai"]["api_key"]
+
+# Use this key for the OpenAI API
+openai.api_key = OPENAI_API_KEY
 
 # Function to generate AI-powered stock commentary (GPT-4)
 def generate_ai_commentary(stock, momentum, rsi, volume, overall):
