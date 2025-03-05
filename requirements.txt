@@ -1,8 +1,6 @@
 streamlit
 yfinance
-requests
+openai
 pandas
-textblob
 plotly
-openai>=1.0.0
-ta
+requests
