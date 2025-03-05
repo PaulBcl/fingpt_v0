@@ -14,6 +14,7 @@ st.set_page_config(layout="wide")
 
 # OpenAI API Key (Replace with your own key)
 OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]
+openai.api_key = OPENAI_API_KEY
 
 # Function to create and display a stock recommendation table
 def create_stock_recommendation_table(data):
@@ -102,8 +103,6 @@ def compute_stock_scores(stock_data):
     return scores[:3], valid_stock_count
 
 # Generate AI-based commentary
-import openai
-
 def generate_ai_commentary(stock, momentum, rsi, volume, overall):
     prompt = (f"Analyze the stock {stock} based on the following indicators:\n"
               f"- Momentum: {momentum}%\n"
@@ -115,17 +114,18 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
         if not OPENAI_API_KEY:
             return "AI analysis unavailable: OpenAI API key is missing."
 
-        openai.api_key = OPENAI_API_KEY
+        openai.api_key = OPENAI_API_KEY  # Ensure correct API key
 
         # Using the new ChatCompletion API to generate responses
         response = openai.ChatCompletion.create(
-            model="gpt-4",  # You can choose any model you prefer
+            model="gpt-4",  # Ensure using a correct model, can also try "gpt-3.5-turbo" if needed
             messages=[
                 {"role": "system", "content": "You are a financial analyst providing stock investment insights."},
                 {"role": "user", "content": prompt}
             ]
         )
 
+        # Extracting the content of the AI response
         return response['choices'][0]['message']['content'].strip()
 
     except Exception as e:
