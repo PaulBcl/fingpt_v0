@@ -29,7 +29,10 @@ jobs:
           git config --global user.name "GitHub Actions"
 
       - name: Restart Streamlit Deployment
+        env:
+          TOKEN_REPO: ${{ secrets.TOKEN_REPO }}
         run: |
           echo "🔄 Triggering Streamlit to update..."
+          git pull origin main
           git commit --allow-empty -m "Trigger Streamlit redeploy"
-          git push origin main
+          git push https://x-access-token:${TOKEN_REPO}@github.com/${{ github.repository }}.git main
