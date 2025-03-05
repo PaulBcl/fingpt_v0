@@ -103,6 +103,8 @@ def compute_stock_scores(stock_data):
     return scores[:3], valid_stock_count
 
 # Generate AI-based commentary
+import openai
+
 def generate_ai_commentary(stock, momentum, rsi, volume, overall):
     prompt = (f"Analyze the stock {stock} based on the following indicators:\n"
               f"- Momentum: {momentum}%\n"
@@ -116,17 +118,17 @@ def generate_ai_commentary(stock, momentum, rsi, volume, overall):
 
         openai.api_key = OPENAI_API_KEY  # Ensure correct API key
 
-        # Using the new ChatCompletion API to generate responses
-        response = openai.ChatCompletion.create(
-            model="gpt-4",  # Ensure using a correct model, can also try "gpt-3.5-turbo" if needed
-            messages=[
-                {"role": "system", "content": "You are a financial analyst providing stock investment insights."},
-                {"role": "user", "content": prompt}
-            ]
+        # Using the new API Completion to generate responses
+        response = openai.Completion.create(
+            model="gpt-4",  # You can also use "gpt-3.5-turbo" if needed
+            prompt=prompt,
+            max_tokens=100,  # You can adjust the number of tokens for the response
+            temperature=0.5,  # Adjust the temperature for randomness of responses
+            n=1  # Return 1 response
         )
 
         # Extracting the content of the AI response
-        return response['choices'][0]['message']['content'].strip()
+        return response['choices'][0]['text'].strip()
 
     except Exception as e:
         return f"AI analysis unavailable: {str(e)}"
