@@ -1,5 +1,4 @@
 name: Deploy to Streamlit
-
 on:
   push:
     branches:
@@ -8,28 +7,27 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4  # Use latest version
+        with:
+          fetch-depth: 0  # Fetches full history
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v5  # Use latest version
         with:
           python-version: '3.10'
+          cache: 'pip'  # Cache pip dependencies
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install streamlit
 
-      - name: Trigger Streamlit Redeployment
-        env:
-          STREAMLIT_APP_NAME: ${{ secrets.STREAMLIT_APP_NAME }}
+      - name: Validate Code (optional)
         run: |
-          echo "🚀 Triggering Streamlit redeployment..."
-          curl -X POST \
-            -H "Content-Type: application/json" \
-            -d "{\"app_name\": \"$STREAMLIT_APP_NAME\"}" \
-            https://sharing.streamlit.io/api/v1/deploy || { echo "❌ Failed to trigger Streamlit deployment"; exit 1; }
+          # Add any validation checks here
+          # For example:
+          # flake8 .  # Code style check
+          # mypy .    # Type checking
+          # python -m pytest  # Run tests
