@@ -35,4 +35,4 @@ jobs:
           echo "🔄 Triggering Streamlit to update..."
           git pull origin main
           git commit --allow-empty -m "Trigger Streamlit redeploy"
-          git push https://x-access-token:${TOKEN_REPO}@github.com/${{ github.repository }}.git main
+          git push https://${TOKEN_REPO}@github.com/${{ github.repository }}.git main
