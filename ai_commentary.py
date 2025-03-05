@@ -2,7 +2,7 @@ import openai
 import streamlit as st
 
 # Access OpenAI API key from secrets
-OPENAI_API_KEY = st.secrets["openai"]["api_key"]
+OPENAI_API_KEY = st.secrets["OPENAI_API_KEY"]  # Correct way to access the key based on your secret name
 
 # Use this key for the OpenAI API
 openai.api_key = OPENAI_API_KEY
