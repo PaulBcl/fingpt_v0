@@ -25,17 +25,24 @@ else:
     TOKEN_REPO = os.getenv("TOKEN_REPO")
     NEWS_API_KEY = os.getenv("NEWS_API_KEY")
 
+# Debugging: Print secrets before raising an error
+print(f"🔍 Debugging Secrets in Python:")
+print(f"DISCORD_BOT_TOKEN: {'✅ Loaded' if BOT_TOKEN else '❌ MISSING'}")
+print(f"OPENAI_API_KEY: {'✅ Loaded' if OPENAI_API_KEY else '❌ MISSING'}")
+print(f"REPO_NAME: {'✅ Loaded' if REPO_NAME else '❌ MISSING'}")
+print(f"TOKEN_REPO: {'✅ Loaded' if TOKEN_REPO else '❌ MISSING'}")
+print(f"NEWS_API_KEY: {'✅ Loaded' if NEWS_API_KEY else '❌ MISSING'}")
+
 # Raise an error if critical API keys are missing
 if not BOT_TOKEN or not OPENAI_API_KEY or not REPO_NAME or not TOKEN_REPO:
     raise ValueError("❌ ERROR: One or more API keys are missing! Ensure they are set in Streamlit Secrets or GitHub Actions.")
 
-# GitHub API URL for modifying files
-GITHUB_API_URL = f"https://api.github.com/repos/{REPO_NAME}/contents/"
+print("✅ All secrets loaded successfully. Starting bot...")
 
 # Initialize OpenAI API
 client_openai = openai.OpenAI(api_key=OPENAI_API_KEY)
 
-# ✅ FIX: Define the Discord client before using it
+# Define Discord client
 intents = discord.Intents.default()
 intents.messages = True
 client = discord.Client(intents=intents)
@@ -44,67 +51,5 @@ client = discord.Client(intents=intents)
 async def on_ready():
     print(f"✅ Logged in as {client.user}")
 
-@client.event
-async def on_message(message):
-    if message.author == client.user:  # ✅ No more unbound error
-        return
-
-    prompt = message.content.strip()
-    print(f"📩 Received message: {prompt}")
-
-    # Use GPT-4 to interpret the instruction
-    instruction = f"""
-    You are an AI assistant modifying a Streamlit Python app.
-    The user asked: '{prompt}'.
-    Identify all necessary files that require changes and provide their updated contents.
-    The output should be a JSON containing:
-    - "files": A dictionary where keys are filenames and values are their new content.
-    Ensure all modifications keep the application functional and error-free.
-    """
-
-    try:
-        response = client_openai.chat.completions.create(
-            model="gpt-4",
-            messages=[{"role": "user", "content": instruction}]
-        )
-        print(f"📝 OpenAI Response: {response}")
-
-        updated_files = eval(response.choices[0].message.content)  # Convert JSON response
-        headers = {"Authorization": f"token {TOKEN_REPO}"}
-
-        for file_path, new_content in updated_files["files"].items():
-            print(f"🔄 Updating file: {file_path}")
-
-            # Fetch the current file's SHA (GitHub requires this for updates)
-            file_info = requests.get(GITHUB_API_URL + file_path, headers=headers).json()
-            file_sha = file_info.get("sha", None)
-
-            if not file_sha:
-                print(f"⚠️ Warning: Could not retrieve SHA for {file_path}. Response: {file_info}")
-
-            # Encode content to Base64
-            encoded_content = base64.b64encode(new_content.encode("utf-8")).decode("utf-8")
-
-            # Prepare the update payload
-            update_data = {
-                "message": f"Auto-update based on Discord command: {prompt}",
-                "content": encoded_content,
-                "sha": file_sha
-            }
-
-            response = requests.put(GITHUB_API_URL + file_path, json=update_data, headers=headers)
-            print(f"🔍 GitHub Response for {file_path}: {response.status_code}, {response.json()}")
-
-            if response.status_code == 200:
-                await message.channel.send(f"✅ {file_path} updated successfully!")
-            else:
-                await message.channel.send(f"❌ Failed to update {file_path}. Error: {response.json()}")
-
-    except Exception as e:
-        error_trace = traceback.format_exc()
-        print(f"❌ Error occurred:\n{error_trace}")
-        await message.channel.send(f"❌ Error processing request:\n```{e}```")
-
 # Run the bot
-print("🚀 Starting Discord bot...")
-client.run(BOT_TOKEN)  # ✅ Ensures `client` is properly defined
+client.run(BOT_TOKEN)
