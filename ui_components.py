@@ -40,34 +40,34 @@ def create_stock_recommendation_table(top_stocks, stock_data, generate_ai_commen
 
 def display_top_stocks(top_stocks, stock_data, generate_ai_commentary):
     """
-    Display the top recommended stocks with AI commentary.
-
-    Parameters:
-    top_stocks (list): List of tuples containing stock scores.
-    stock_data (dict): Stock data dictionary.
-    generate_ai_commentary (function): AI function for generating insights.
+    Display the top selected stocks with AI commentary.
     """
-    st.subheader("🏆 Top 3 Stock Picks")
-
     if not top_stocks:
         st.warning("No top stocks available.")
         return
 
-    for stock, momentum, pe_score, debt_score, roe_score, overall in top_stocks:
-        financials = stock_data[stock]["financials"]
+    # Debugging: Check if `top_stocks` structure is as expected
+    st.write("🔍 Debugging: top_stocks structure:", top_stocks)
+
+    for stock_data_entry in top_stocks:
+        if len(stock_data_entry) != 6:
+            st.error(f"❌ Unexpected data format: {stock_data_entry} (expected 6 elements)")
+            continue  # Skip incorrect entries
+
+        stock, momentum, pe_score, debt_score, roe_score, overall = stock_data_entry
+        financials = stock_data.get(stock, {}).get("financials", {})
+
+        # Ensure financials are valid before using them in AI commentary
+        if not financials:
+            st.warning(f"⚠️ No financial data found for {stock}. Skipping AI commentary.")
+            continue
+
         ai_comment = generate_ai_commentary(stock, financials, (momentum, pe_score, debt_score, roe_score))
 
-        st.markdown(f"""
-        <div style="background-color:#f0f2f6; border-radius:10px; padding:15px; margin-bottom:10px; padding:10px;">
-            <h3 style="color:#1e3a8a;">{stock}</h3>
-            <p><b>Momentum:</b> {momentum:.2f}%</p>
-            <p><b>P/E Ratio:</b> {round(pe_score, 2)}</p>
-            <p><b>Debt Score:</b> {round(debt_score, 2)}</p>
-            <p><b>ROE:</b> {roe_score:.2f}%</p>
-            <p><b>Overall Score:</b> {round(overall, 2)}</p>
-            <p><b>AI Commentary:</b> {ai_comment}</p>
-        </div>
-        """, unsafe_allow_html=True)
+        st.write(f"**{stock}**")
+        st.write(f"📊 Momentum: {momentum}, P/E: {pe_score}, Debt: {debt_score}, ROE: {roe_score}, Overall: {overall}")
+        st.write(f"🧠 AI Commentary: {ai_comment}")
+
 
 def create_comprehensive_stock_view(top_stocks, stock_data, generate_ai_commentary):
     """
