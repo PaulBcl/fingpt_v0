@@ -42,6 +42,10 @@ print("✅ All secrets loaded successfully. Starting bot...")
 # Initialize OpenAI API
 client_openai = openai.OpenAI(api_key=OPENAI_API_KEY)
 
+# GitHub API URL for modifying files
+GITHUB_API_URL = f"https://api.github.com/repos/{REPO_NAME}/contents/"
+
+
 # ✅ Use explicit privileged intents
 intents = discord.Intents.default()
 intents.messages = True
@@ -121,7 +125,7 @@ async def on_message(message):
         print(f"❌ Error occurred:\n{error_trace}")
         await message.channel.send(f"❌ Error processing request:\n```{e}```")
 
-    
+
 # Run the bot
 print("🚀 Starting Discord bot...")
 client.run(DISCORD_BOT_TOKEN)
