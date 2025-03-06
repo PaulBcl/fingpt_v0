@@ -126,12 +126,3 @@ if st.sidebar.button("🚀 Apply Code Update from Chat"):
 st.write("### AI Stock Picker - Live Updates Enabled")
 st.write("Stock picks based on momentum, volume, sentiment, and trend alerts.")
 st.write(f"⏳ Data refreshes every {refresh_interval} minutes automatically. You can also refresh manually using the button.")
-
-
-# New additions from Discord
-st.sidebar.text('I love Deniz')
-#rest of the code...
-
-# New additions from Discord
-st.sidebar.markdown('# I love Deniz')
-# rest of the code...
